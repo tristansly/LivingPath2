@@ -5,20 +5,19 @@ import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, Entry
 import inspect
 
-
 class Slider(ttk.Frame):
-    def __init__(s, context, size=200, min=0, max=100, ini=0, layer=None, name='', format="%d", flag=''):
+    def __init__(s, context, size=200, min=0, max=100, layer=None, name='', format="%d", flag=''):
         super(Slider, s).__init__(context)
         s.format = format
         s.name = name
         s.flag = flag
-        s.module = font_utils if layer == None else layer
+        s.layer = font_utils if layer == None else layer
 
-        s.val = ttk.Label(s, text = s.format % ini) # display fix slider number
+        s.val = ttk.Label(s, text = s.format % s.get_attach_val()) # display fix slider number
         s.val.grid(column=1, row=1, sticky=tk.W, padx=5 )
 
-        s.slider = ttk.Scale(s, from_=min, to_=max, length=size, orient="horizontal")
-        s.slider.set(ini)
+        s.slider = ttk.Scale(s, from_=min, to_=max, length=size, orient="horizontal",style='Tick.TScale')
+        s.slider.set( s.get_attach_val() )
         s.slider.configure(command = s.update)
         s.slider.bind("<ButtonRelease-1>", s.update_eco)
         s.slider.grid(column=0, row=1, sticky=tk.W)
@@ -27,54 +26,50 @@ class Slider(ttk.Frame):
         s.title = ttk.Label(s, text = name.replace('_', ' ') )
         s.title.grid(column=0, row=0, sticky=tk.W)
 
-    def is_float(s, P, S, V):
-        if P.replace('.','',1).isdigit() or P == '':
-            if  P != '' and V != 'forced' : s.slider.set(P)
-            print(P)
-            return True
-        else:
-            print('error : ', P)
-            return False
-
     def update(s, event):
         s.val.configure(text=s.get())
-        if s.flag != 'eco' and getattr( s.module, s.name ) != None:
+        if s.flag != 'eco' and getattr( s.layer, s.name ) != None:
             s.set_attach_val()
             gui.show_glyph()
-
     def update_eco(s, event):
-        if s.flag == 'eco' and getattr( s.module, s.name ) != None:
+        if s.flag == 'eco' and getattr( s.layer, s.name ) != None:
             s.set_attach_val()
             gui.show_glyph()
 
     def set_attach_val(s):
-        if format=="%d" : setattr(s.module, s.name, int(s.get()))
-        if format!="%d" : setattr(s.module, s.name, float(s.get()))
+        if s.format == "%d" :
+            setattr(s.layer, s.name, int(s.get()))
+        if s.format != "%d" :
+            setattr(s.layer, s.name, float(s.get()))
+    def get_attach_val(s):
+        return getattr(s.layer, s.name)
     def get(s):
         return s.format % float( s.slider.get() )
 
 
 
 class Checkbutton(ttk.Frame):
-    def __init__(s, context, ini=0, name=''):
+    def __init__(s, context, layer=None, name=''):
         super(Checkbutton, s).__init__(context)
         s.name = name
-        s.module = get_calling_module()
+        s.layer = font_utils if layer == None else layer
         s.var = tk.StringVar()
-        s.var.set(ini)
+        s.var.set( s.get_attach_val() )
         s.check = ttk.Checkbutton( s, text=name.replace('_',' '), variable=s.var )
         s.check.configure(command = s.update)
         s.check.grid(column=0, row=1, sticky=tk.W)
         s.set_attach_val()
 
     def update(s, val='undefined'):
-        if getattr( s.module, s.name ) != None and val != int(s.var.get()):
+        if getattr( s.layer, s.name ) != None and val != int(s.var.get()):
             if val != 'undefined': s.var.set(val)
             s.set_attach_val()
             gui.show_glyph()
 
     def set_attach_val(s):
-        setattr(s.module, s.name, int(s.var.get()))
+        setattr(s.layer, s.name, int(s.var.get()))
+    def get_attach_val(s):
+        return getattr(s.layer, s.name)
 
 #----------------------------------------------------------------------------------
 

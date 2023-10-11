@@ -1,50 +1,78 @@
+#! /usr/bin/env python3
 
-import cv2
-import numpy as np
-import potrace
-from PIL import ImageDraw, Image, ImageOps, ImageFilter
-
-def cv_vecto() :
-    img = cv2.imread('shape.png', cv2.IMREAD_UNCHANGED)
-
-    #convert img to grey
-    img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
-    img_grey = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
-    # img_grey = img
-    #set a thresh
-    thresh = 100
-    #get threshold image
-    ret,thresh_img = cv2.threshold(img_grey, thresh, 255, cv2.THRESH_BINARY)
-    cv2.imwrite('cont.png',thresh_img)
-    #find contours
-    contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
-
-    #create an empty image for contours
-    img_contours = np.zeros(img.shape)
-    print(contours)
-    # draw the contours on the empty image
-    cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
-    contours = contours[1].reshape(-1,2)
-    c = 0
-    for (x, y) in contours:
-        cv2.circle(img_contours, (x, y), 1, (255, 0, 0), 3)
-        c += 1
-    print('TOTAL', c)
-    #save image
-    cv2.imwrite('contours.png',img_contours)
+# Example script to decompose the composite glyphs in a TTF into
+# non-composite outlines.
 
 
-import tkinter as tk
-from tkinterdnd2 import DND_FILES, TkinterDnD
+import sys
+from fontTools.ttLib import TTFont
+from fontTools.pens.recordingPen import DecomposingRecordingPen
+from fontTools.pens.ttGlyphPen import TTGlyphPen
 
-root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
+try:
+    import pathops
+except ImportError:
+    sys.exit(
+        "This script requires the skia-pathops module. "
+        "`pip install skia-pathops` and then retry."
+    )
 
-lb = tk.Listbox(root)
-lb.insert(1, "drag files to here")
 
-# register the listbox as a drop target
-lb.drop_target_register(DND_FILES)
-lb.dnd_bind('<<Drop>>', lambda e: lb.insert(tk.END, e.data))
+src =  "./files/1.ttf"
+dst =  "./out2.otf"
 
-lb.pack()
-root.mainloop()
+with TTFont(src) as f:
+    glyfTable = f["glyf"]
+    glyphSet = f.getGlyphSet()
+
+    for glyphName in glyphSet.keys():
+        # if not glyfTable[glyphName].isComposite():
+            # continue
+
+
+        # record TTGlyph outlines without components
+        dcPen = DecomposingRecordingPen(glyphSet)
+        # glyphSet[glyphName].draw(dcPen)
+        dcPen.moveTo((0,0))
+        dcPen.lineTo((0,200))
+        dcPen.lineTo((200,200))
+        dcPen.lineTo((200,0))
+        dcPen.lineTo((0,0))
+        dcPen.closePath()
+        dcPen.moveTo((100,100))
+        dcPen.lineTo((100,300))
+        dcPen.lineTo((300,300))
+        dcPen.lineTo((300,100))
+        dcPen.lineTo((100,100))
+        dcPen.closePath()
+        # replay recording onto a skia-pathops Path
+        path = pathops.Path()
+        pathPen = path.getPen()
+        dcPen.replay(pathPen)
+        # pathops.operations.difference(path,path,pathPen)
+
+        # remove overlaps
+        # path.simplify()
+        path1 = pathops.Path()
+        path1.moveTo(100,100)
+        path1.lineTo(100,300)
+        path1.lineTo(300,300)
+        path1.lineTo(300,100)
+        path1.lineTo(100,100)
+        path2 = pathops.Path()
+        path2.moveTo(0,0)
+        path2.lineTo(0,200)
+        path2.lineTo(200,200)
+        path2.lineTo(200,0)
+        path2.lineTo(0,0)
+
+        path = pathops.Path()
+        pathops.operations.xor([path1],[path2],path.getPen())
+        path.simplify()
+
+            # create new TTGlyph from Path
+        ttPen = TTGlyphPen(None)
+        path.draw(ttPen)
+        glyfTable[glyphName] = ttPen.glyph()
+
+    f.save(dst)
