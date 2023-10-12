@@ -8,4 +8,7 @@ class plugin():
     """Base plugin."""
 
     def __init__(s):
-        print('base')    
+        print('base')
+
+        # base_plugin is useless for now
+        # and only implemented with outline plugin

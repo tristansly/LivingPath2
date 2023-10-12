@@ -10,8 +10,8 @@ from functools import partial
 import pprint
 
 plugins, names, layers = [], [], []
-current_layer = -1
-current_group = -1
+layer = -1
+group = -1
 current_glyph = 'b'
 root = None
 font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
@@ -38,11 +38,11 @@ def get_current_img():
     img = draw_points(path, img)
     return img
 
-def algo(data):
-    print('group ',current_group,' - layer ',current_layer)
-    print('group ',len(layers),' - layer ',len(layers[current_group]),' len' )
-
-    return layers[current_group][current_layer].run(data)
+def algo(img):
+    for gro in layers:
+        for lay in gro:
+            img = lay.run(img)
+    return img
 
 def modify_font():
     print("unprocessed glyphs :")
@@ -52,28 +52,28 @@ def modify_font():
             img = glyph_to_raster(font, key)
             path = vectorization( algo(img) )
             path_to_font(path, key, font)
-        else:
-            print(key, end=' ')
+        # else:
+        #     print(key, end=' ')  # check uncomputed glyph
     # if font['glyf'] : font['maxp'].recalc(font)
     font.save( utils.path("out.otf") )
     print("Modified font saved successfully!")
 
 def new_layer(i):
-    current_layer = len( layers[current_group] )
-    layers[current_group].append( plugins[i].Layer() )
-    ttk.Checkbutton(gui.gui_frame_layer, text=names[i],style='Toggle.TButton', \
-    command=partial(gui.select_layer,current_group, current_layer)) \
-    .grid(column=current_group, row=current_layer, padx=15,pady=4)
-    gui.select_layer(current_group, current_layer)
+    layer = len( layers[group] )
+    layers[group].append( plugins[i].Layer() )
+    layers[group][layer].gui_button = ttk.Checkbutton(gui.gui_frame_layer, text=names[i],style='Toggle.TButton', \
+    command=partial(gui.select_layer,group, layer))
+    layers[group][layer].gui_button.grid(column=group, row=layer, padx=15,pady=4)
+    gui.select_layer(group, layer)
     print('NEW LAYER : ', names[i])
 def new_group():
     layers.append( [] )
-    global current_group
-    global current_layer
-    current_group += 1
-    current_layer = -1
+    global group
+    global layer
+    group += 1
+    layer = -1
     new_layer(0)
-    print('NEW GROUP : ', current_group)
+    print('NEW GROUP : ', group)
 
 def main():
     global root

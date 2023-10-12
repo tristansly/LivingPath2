@@ -16,7 +16,11 @@ from functools import partial
 def global_Interface(root):
     root.title('Alt-Font')
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
-    root.geometry('%dx%d+%d+%d' % (ws-400, hs-150, ws/2-(ws-400)/2, hs/2-(hs-150)/2))
+    wm, hm = ws/10, hs/10
+    root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
+    # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
+    if ws < 1500 : root.attributes("-fullscreen", True)
+    print(ws)
     root.resizable()
     root.iconphoto(False, ImageTk.PhotoImage(Image.open(utils.path('files/logo.png'))))
     # root.tk.call('tk', 'scaling', 1.5)
@@ -106,7 +110,7 @@ def production_esc(root):
     main.modify_font()
 def refresh():
     img = main.get_current_img()
-    img = ImageTk.PhotoImage( img.crop((150, 150, img.width-150, img.height-150)) )
+    img = ImageTk.PhotoImage( img.crop((150, 150, img.width-150, img.height-150)).resize((int(img.width/2),int(img.height/2)),Image.Resampling.LANCZOS) )
     global img_letter
     img_letter.configure( image=img )
     img_letter.image = img
@@ -144,20 +148,20 @@ def load_new_font(data):
     if 'glyf' in main.font :
         main.font = TTFont( utils.path(data), recalcBBoxes=True )
     # main.tmp_font = TTFont( utils.path(data), recalcBBoxes=False )
-    global gui_font_info
     gui_font_info['name'].set( str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
     print( utils.path(data) )
     refresh()
 
 
-
 def select_layer(group,layer):
-    main.current_group = group
-    main.current_layer = layer
-    global gui_frame_param
+    main.group = group
+    main.layer = layer
     for child in gui_frame_param.winfo_children(): child.destroy()
-    # for child in gui_frame_layer.winfo_children(): child.state(["!selected"])
+    main.layers[group][layer].gui_button.state(["selected"])
+    for gro in main.layers:
+        for lay in gro:
+            if lay != main.layers[group][layer] : lay.gui_button.state(["!selected"])
     print('select_layer : group ',group,' - layer ', layer)
     main.layers[group][layer].gui( gui_frame_param )
 

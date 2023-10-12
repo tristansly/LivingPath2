@@ -1,6 +1,6 @@
 import freetype as ft
 import numpy as np
-import potrace
+import potrace # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
