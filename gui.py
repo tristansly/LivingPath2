@@ -70,7 +70,7 @@ def global_Interface(root):
     g.Slider(frame, max=3, name='outline_join' ).grid(column=1, row=9, sticky=tk.W)
     g.Slider(frame, max=300000, name='outline_join_limit' ).grid(column=1, row=10, sticky=tk.W)
     # Slider(frame, 20, 0, 100, 40, 'name1', '%0.2f', flag='eco').grid(column=1, row=1, sticky=tk.W)
-    g.Checkbutton(frame, name='potrace_simple').grid(column=0, row=2, sticky=tk.W)
+    g.Checkbutton(frame, name='potrace_simple').grid(column=0, row=1, sticky=tk.W)
     g.Checkbutton(frame, name='test_bool').grid(column=0, row=3, sticky=tk.W)
     global check_display_points
     check_display_points = g.Checkbutton(frame, name='display_points')
@@ -105,15 +105,27 @@ def global_Interface(root):
     global img_letter
     img_letter = Label(root, image=img)
     img_letter.grid(row=1, column=2,sticky=tk.NS, rowspan=2)
+
+
+    img = ImageTk.PhotoImage( main.img.resize((10,10),1) )
+    global btn_save_editor
+    btn_save_editor = ttk.Button(root, text='Replace', compound=tk.LEFT)
+    btn_save_editor.grid(row=0, column=0,rowspan=2)
+
+    # self.facebookButton = ttk.Button(self.mainFrame, text='Facebook', image=self.facebookIcon, compound=LEFT)
+
 def production_esc(root):
     root.destroy()
     main.modify_font()
 def refresh():
     img = main.get_current_img()
-    img = ImageTk.PhotoImage( img.crop((150, 150, img.width-150, img.height-150)).resize((int(img.width/2),int(img.height/2)),Image.Resampling.LANCZOS) )
+
+    img = ImageTk.PhotoImage(img.crop((150, 150, img.width-150, img.height-150)).resize((int(img.width/2),int(img.height/2)),1) )
     global img_letter
     img_letter.configure( image=img )
     img_letter.image = img
+
+
 
 def show_glyph(flag=''):
     glyph_set = main.font.getGlyphSet()

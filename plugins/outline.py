@@ -13,7 +13,6 @@ class Layer(plugin):
 
         s.contour_val = 100
         s.kernel_size = 5
-        # s.kernel_shape = 0
 
     def gui(s, frame):
         gui.Slider(frame, max=200, layer=s, name='contour_val').grid(column=1, row=1, sticky='W')

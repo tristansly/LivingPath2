@@ -1,12 +1,13 @@
+from base_plugin import plugin
 import gui_utils as gui
 
 from PIL import ImageFilter
 
-class Layer():
+class Layer(plugin):
     """Apply a blur then a threshold."""
 
     def __init__(s):
-        # super(Blur, s).__init__()
+        super(Layer, s).__init__()
 
         s.blur_val = 40
         s.threshold_val = 90

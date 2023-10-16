@@ -2,7 +2,6 @@ import utils
 from font_utils import *
 import gui
 
-from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import math, os
 from fontTools import ttLib
@@ -12,7 +11,7 @@ import pprint
 plugins, names, layers = [], [], []
 layer = -1
 group = -1
-current_glyph = 'b'
+current_glyph = 'g'
 root = None
 font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 tmp_font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
@@ -58,13 +57,14 @@ def modify_font():
     font.save( utils.path("out.otf") )
     print("Modified font saved successfully!")
 
-def new_layer(i):
+def new_layer(i, refresh=True):
+    global layer
     layer = len( layers[group] )
     layers[group].append( plugins[i].Layer() )
-    layers[group][layer].gui_button = ttk.Checkbutton(gui.gui_frame_layer, text=names[i],style='Toggle.TButton', \
-    command=partial(gui.select_layer,group, layer))
-    layers[group][layer].gui_button.grid(column=group, row=layer, padx=15,pady=4)
-    gui.select_layer(group, layer)
+    layers[group][layer].name = names[i]
+    layers[group][layer].setup_gui()
+    gui.select_layer( group, layer )
+    if refresh : gui.refresh()
     print('NEW LAYER : ', names[i])
 def new_group():
     layers.append( [] )
@@ -72,8 +72,16 @@ def new_group():
     global layer
     group += 1
     layer = -1
-    new_layer(0)
+    new_layer(0, refresh=False)
     print('NEW GROUP : ', group)
+def del_layer(group,layer):
+    layers[group][layer].gui_frame.destroy()
+    layers[group].pop(layer)
+    for g in range(len(layers)):
+        for l in range(len(layers[g])):
+            layers[g][l].gui_position(g, l)
+    gui.select_layer(group, layer)
+    gui.refresh()
 
 def main():
     global root

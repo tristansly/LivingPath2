@@ -1,14 +1,15 @@
+from base_plugin import plugin
 import gui_utils as gui
 
 import cv2
 import numpy as np
 from PIL import Image
 
-class Layer():
+class Layer(plugin):
     """outline font layer"""
 
     def __init__(s):
-        # super(Blur, s).__init__()
+        super(Layer, s).__init__()
 
         s.contour_val = 100
         s.kernel_size = 5
