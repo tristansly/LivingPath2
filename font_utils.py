@@ -6,7 +6,7 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.misc.transform import Offset
-from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath
+from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops
 
 import utils
 import pprint
@@ -25,20 +25,18 @@ outline_join_limit = 160000
 
 imgMargin = 200
 
-def glyph_to_raster(font, glyph):
+def glyph_to_img(font, glyph):
     gs = font.getGlyphSet()
     pen = FreeTypePen( gs )
+
     gs[glyph].draw(pen)
     height = font['OS/2'].usWinAscent + font['OS/2'].usWinDescent + 2*imgMargin
     width = gs[glyph].width + 2*imgMargin
-
-    # img = pen.image(width=width, height=height, transform=Offset(0, -font['OS/2'].usWinDescent))
     img = pen.image(width=width,height=height,transform=Offset(imgMargin,font['OS/2'].usWinDescent+2*imgMargin))
-
     return ImageOps.invert(img.getchannel('A'))
 
 
-def glyph_to_img_outline(font,tmp_font,g):
+def glyph_to_img_outline(font,g):
     gs = font.getGlyphSet()
     pen = FreeTypePen( gs )
     gs[g].draw(pen)
@@ -133,6 +131,15 @@ def path_to_font(path, glyph, font):
     if 'glyf' in font : font['glyf'][glyph] = pen.glyph(dropImpliedOnCurves=True)
     if 'CFF ' in font : font['CFF '].cff.topDictIndex[0].CharStrings[glyph] = pen.getCharString()
 
+def operator_img(img, img2, operator):
+    op = {0 : ImageChops.add,
+        1 : ImageChops.difference,
+        2 : ImageChops.logical_and,
+        3 : ImageChops.lighter,
+        4 : ImageChops.darker,
+        5 : ImageChops.difference,
+    }
+    return op[operator]( img, img2 )
 
 def draw_points(path, img): # draw visual beziers with PIL
     if display_points :

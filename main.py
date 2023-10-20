@@ -1,6 +1,7 @@
 import utils
 from font_utils import *
 import gui
+from group import Group
 
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import math, os
@@ -8,39 +9,52 @@ from fontTools import ttLib
 from functools import partial
 import pprint
 
-plugins, names, layers = [], [], []
-layer = -1
-group = -1
+plugins, names, groups = [], [], []
+layer = None
 current_glyph = 'g'
 root = None
 font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 tmp_font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
-img = glyph_to_raster(font, current_glyph)
+img = glyph_to_img(font, current_glyph)
 
 
-# from time import perf_counter
+from time import perf_counter
+def time(msg):
+    global last_time
+    if msg : print( str(perf_counter()-last_time).replace('0','-')[0:4], msg )
+    last_time = perf_counter()
+
 def get_current_img():
-    # print( perf_counter(), " algo ")
-    # print( perf_counter(), " vecto ")
-    # print( perf_counter(), " path to font ")
-    # print( perf_counter(), " g to raster ")
-    # print( perf_counter(), " draw point ")
+    time(None)
 
-    img = glyph_to_raster(font, current_glyph)
-    img = algo(img)
+    # img = glyph_to_img(font, current_glyph)
+    # img = glyph_to_img_outline(font, current_glyph)
+
+
+    for g in groups:
+        glyph_to_font_outline(font, tmp_font, current_glyph) # .002 sec
+        img = glyph_to_img(tmp_font, current_glyph) # .009 sec
+        for l in g.layers:
+            img = l.run(img)
+        if g.n > 0 :
+            img = operator_img(img, prev_img, g.op)
+        prev_img = img
+
+    time(" algo ")
+
     path = vectorization( img )
+    time(" vecto ")
     # path = algo()
-    path_to_font(path, current_glyph, tmp_font)
+    path_to_font(path, current_glyph, tmp_font) # .002 sec
 
-    # glyph_to_font_outline(font, tmp_font, current_glyph)
-    img = glyph_to_raster(tmp_font, current_glyph)
+    img = glyph_to_img(tmp_font, current_glyph) # .006 sec
     img = draw_points(path, img)
     return img
 
 def algo(img):
-    for gro in layers:
-        for lay in gro:
-            img = lay.run(img)
+    for g in groups:
+        for l in g.layers:
+            img = l.run(img)
     return img
 
 def modify_font():
@@ -48,7 +62,7 @@ def modify_font():
     for key in font.getGlyphSet():
         # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
         if  key in list('qwertyuioplkjhgfdsazxcvbnmV'):
-            img = glyph_to_raster(font, key)
+            img = glyph_to_img(font, key)
             path = vectorization( algo(img) )
             path_to_font(path, key, font)
         # else:
@@ -57,31 +71,33 @@ def modify_font():
     font.save( utils.path("out.otf") )
     print("Modified font saved successfully!")
 
+def select_layer( selected ):
+    global layer
+    layer = selected
+    for child in gui.gui_frame_param.winfo_children(): child.destroy()
+    for grp in groups :
+        for lay in grp.layers :
+            lay.gui_button.state(["!selected"])
+    layer.gui_button.state(["selected"])
+    layer.gui( gui.gui_frame_param )
+    print('( select_layer : group',layer.group.n,' - layer', layer.n,')')
+
 def new_layer(i, refresh=True):
-    global layer
-    layer = len( layers[group] )
-    layers[group].append( plugins[i].Layer() )
-    layers[group][layer].name = names[i]
-    layers[group][layer].setup_gui()
-    gui.select_layer( group, layer )
-    if refresh : gui.refresh()
-    print('NEW LAYER : ', names[i])
+    print('( new_layer : group',layer.group.n,' - layer', layer.n,')')
+    layer.group.new_layer(i)
+    # groups[0].new_layer(i)
+
 def new_group():
-    layers.append( [] )
-    global group
-    global layer
-    group += 1
-    layer = -1
-    new_layer(0, refresh=False)
-    print('NEW GROUP : ', group)
-def del_layer(group,layer):
-    layers[group][layer].gui_frame.destroy()
-    layers[group].pop(layer)
-    for g in range(len(layers)):
-        for l in range(len(layers[g])):
-            layers[g][l].gui_position(g, l)
-    gui.select_layer(group, layer)
-    gui.refresh()
+    groups.append( Group() )
+    select_layer( groups[-1].layers[-1] )
+    groups[-1].position( len(groups)-1 )
+    print('NEW GROUP : ', layer.group.n)
+
+def del_group(n):
+    groups[n].frame.destroy()
+    groups.pop( n )
+    for i in range(len(groups)) : groups[i].position(i)
+    if layer.group.n == n : select_layer( groups[0].layers[-1] )
 
 def main():
     global root

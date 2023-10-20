@@ -1,9 +1,9 @@
-from base_plugin import plugin
+from base_plugin import Plugin
 import gui_utils as gui
 
 from PIL import ImageFilter
 
-class Layer(plugin):
+class Layer(Plugin):
     """Apply a blur then a threshold."""
 
     def __init__(s):

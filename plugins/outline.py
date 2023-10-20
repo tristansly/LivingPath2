@@ -1,11 +1,11 @@
-from base_plugin import plugin
+from base_plugin import Plugin
 import gui_utils as gui
 
 import cairo
 from io import BytesIO
 from PIL import Image
 
-class Layer(plugin):
+class Layer(Plugin):
     """outline font layer"""
 
     def __init__(s):

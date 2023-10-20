@@ -2,6 +2,7 @@ import main
 import utils
 import font_utils
 import gui_utils as g
+import gui_drag_drop
 
 # import inspect
 # import pprint
@@ -55,6 +56,7 @@ def global_Interface(root):
     global gui_frame_layer
     gui_frame_layer = ttk.Frame(root, style='Card.TFrame')
     gui_frame_layer.grid(column=0, row=0, columnspan=3, sticky='swne')
+    root.bind("<Button-1>",gui_drag_drop.on_click)
 
     global gui_frame_param
     gui_frame_param = ttk.Frame(root, style='Card.TFrame')
@@ -126,18 +128,17 @@ def refresh():
     img_letter.image = img
 
 
-
 def show_glyph(flag=''):
     glyph_set = main.font.getGlyphSet()
     if flag=='prev': main.current_glyph = utils.prev_key(glyph_set, main.current_glyph)
     if flag=='next': main.current_glyph = utils.next_key(glyph_set, main.current_glyph)
-    print('---', main.current_glyph, end=' - ')
+    # print('---', main.current_glyph, end=' - ')
 
     if 'CFF ' in main.font : print('Table : CFF ')
     if 'CFF2' in main.font : print('Table : CFF2')
     if 'glyf' in main.font :
         g = main.font['glyf'][main.current_glyph]
-        print('Table : glyf - has contour : ', g.numberOfContours)
+        # print('Table : glyf - has contour : ', g.numberOfContours)
         if g.isComposite():
             print(main.current_glyph, 'is composite')
         elif g.numberOfContours > 0:
@@ -154,7 +155,7 @@ def show_glyph(flag=''):
 
 def drop(root,e):
     load_new_font(e.data)
-def load_new_font(data):
+def load_new_font(data, refresh=False):
     if data[0] == '{': data = data[1:-1]
     main.font = TTFont( utils.path(data), recalcBBoxes=False )
     if 'glyf' in main.font :
@@ -162,20 +163,8 @@ def load_new_font(data):
     # main.tmp_font = TTFont( utils.path(data), recalcBBoxes=False )
     gui_font_info['name'].set( str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
-    print( utils.path(data) )
-    refresh()
-
-
-def select_layer(group,layer):
-    main.group = group
-    main.layer = layer
-    for child in gui_frame_param.winfo_children(): child.destroy()
-    main.layers[group][layer].gui_button.state(["selected"])
-    for gro in main.layers:
-        for lay in gro:
-            if lay != main.layers[group][layer] : lay.gui_button.state(["!selected"])
-    print('select_layer : group ',group,' - layer ', layer)
-    main.layers[group][layer].gui( gui_frame_param )
+    print( f'LOAD FONT : (refresh={refresh}) {utils.path(data)}' )
+    if refresh : refresh()
 
 
 if __name__ == "__main__":
