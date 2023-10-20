@@ -21,7 +21,8 @@ img = glyph_to_img(font, current_glyph)
 from time import perf_counter
 def time(msg):
     global last_time
-    if msg : print( str(perf_counter()-last_time).replace('0','-')[0:4], msg )
+    if msg : print( str(perf_counter()-last_time).replace('0','-')[0:5],msg,end='' )
+    if not msg : print("\nTIMER : ",end='')
     last_time = perf_counter()
 
 def get_current_img():
