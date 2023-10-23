@@ -73,7 +73,7 @@ def pt(a):
     coef = 64
     return (a.x/coef, a.y/coef)
 
-def glyph_to_font_outline(in_font, font, g):
+def glyph_to_font_outline(in_font, font, g, group):
     gs = in_font.getGlyphSet()
     fpen = FreeTypePen( gs )
     gs[g].draw(fpen)
@@ -134,10 +134,8 @@ def path_to_font(path, glyph, font):
 def operator_img(img, img2, operator):
     op = {0 : ImageChops.add,
         1 : ImageChops.difference,
-        2 : ImageChops.logical_and,
-        3 : ImageChops.lighter,
-        4 : ImageChops.darker,
-        5 : ImageChops.difference,
+        2 : ImageChops.darker,
+        3 : ImageChops.lighter
     }
     return op[operator]( img, img2 )
 

@@ -1,5 +1,6 @@
 import utils
 from font_utils import *
+import font_utils
 import gui
 from group import Group
 
@@ -27,29 +28,26 @@ def time(msg):
 
 def get_current_img():
     time(None)
-
     # img = glyph_to_img(font, current_glyph)
     # img = glyph_to_img_outline(font, current_glyph)
 
-
     for g in groups:
-        glyph_to_font_outline(font, tmp_font, current_glyph) # .002 sec
+        glyph_to_font_outline(font, tmp_font, current_glyph, g) # .002 sec
         img = glyph_to_img(tmp_font, current_glyph) # .009 sec
         for l in g.layers:
             img = l.run(img)
         if g.n > 0 :
             img = operator_img(img, prev_img, g.op)
         prev_img = img
-
     time(" algo ")
 
-    path = vectorization( img )
-    time(" vecto ")
-    # path = algo()
-    path_to_font(path, current_glyph, tmp_font) # .002 sec
-
-    img = glyph_to_img(tmp_font, current_glyph) # .006 sec
-    img = draw_points(path, img)
+    if font_utils.display_points :
+        path = vectorization( img )
+        # time(" vecto ")
+        path_to_font(path, current_glyph, tmp_font) # .002 sec
+        img = glyph_to_img(tmp_font, current_glyph) # .006 sec
+        img = draw_points(path, img)
+        time(" display vecto ")
     return img
 
 def algo(img):

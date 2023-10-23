@@ -30,7 +30,7 @@ class Plugin():
     def gui_position(s, n):
         s.n = n
         # s.gui_frame.grid_forget()
-        s.gui_frame.grid( column=0, row=n, padx=15, pady=4 )
+        s.gui_frame.grid( column=1, row=n, padx=15, pady=4 )
         s.gui_button.config( command = partial(main.select_layer, s) )
         # s.gui_button.state(["!selected"])
         s.gui_del.config( command = partial(s.group.del_layer, s.n) )
