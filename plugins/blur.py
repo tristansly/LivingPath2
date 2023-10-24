@@ -1,5 +1,5 @@
-from base_plugin import Plugin
 import gui_utils as gui
+from base_plugin import Plugin
 
 from PIL import ImageFilter
 

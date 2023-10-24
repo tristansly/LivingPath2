@@ -20,18 +20,18 @@ class Layer(Plugin):
 
     def run(s, img):
 
-        cv_img = np.array(img)
-
-        # kernel = np.ones((s.kernel_size,s.kernel_size),np.uint8)
-        kernel =  cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(s.kernel_size,s.kernel_size))
-        if s.contour_val < 100 :
-            erosion = cv2.dilate(cv_img,kernel,iterations = 100-s.contour_val )
-        else :
-            erosion = cv2.erode(cv_img,kernel,iterations = s.contour_val-100 )
-
-
-
-        img = Image.fromarray(erosion)
+        # cv_img = np.array(img)
+        #
+        # # kernel = np.ones((s.kernel_size,s.kernel_size),np.uint8)
+        # kernel =  cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(s.kernel_size,s.kernel_size))
+        # if s.contour_val < 100 :
+        #     erosion = cv2.dilate(cv_img,kernel,iterations = 100-s.contour_val )
+        # else :
+        #     erosion = cv2.erode(cv_img,kernel,iterations = s.contour_val-100 )
+        #
+        #
+        #
+        # img = Image.fromarray(erosion)
 
         return img
 

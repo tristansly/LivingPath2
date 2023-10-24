@@ -26,7 +26,7 @@ def global_Interface(root):
     root.resizable()
     root.iconphoto(False, ImageTk.PhotoImage(Image.open(utils.path('files/logo.png'))))
     # root.tk.call('tk', 'scaling', 1.5)
-    root.tk.call("source", utils.path("files/ttk-theme/azure.tcl")) # theme
+    root.tk.call("source", utils.path("files/azure.tcl")) # theme
     root.tk.call("set_theme", "light")
     root.drop_target_register(DND_FILES) # drag & drop
     root.dnd_bind('<<Drop>>', lambda e: drop(root, e) )

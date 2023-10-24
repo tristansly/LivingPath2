@@ -6,7 +6,7 @@ import freetype as ft
 
 def load_plugins():
     plugins, names = [], []
-    for i in os.listdir("./plugins"):
+    for i in os.listdir( path("plugins") ):
         if not i.startswith("__") and i.endswith(".py") :
             name = i.split('.')[0]
             print("LOADED PLUGIN : " + name)
