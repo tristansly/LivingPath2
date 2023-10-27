@@ -4,17 +4,26 @@ import ctypes
 import contextlib
 import freetype as ft
 
+
 def load_plugins():
     plugins, names = [], []
-    for i in os.listdir( path("plugins") ):
-        if not i.startswith("__") and i.endswith(".py") :
-            name = i.split('.')[0]
-            print("LOADED PLUGIN : " + name)
-            plugins.append( importlib.import_module("plugins." + name))
-            names.append( name )
-            if "outline" in i :
-                names.insert(0, names.pop( len(names)-1 ) )
-                plugins.insert(0, plugins.pop( len(plugins)-1 ) )
+    # alternative to importlib :
+    from plugins import outline
+    from plugins import blur
+    from plugins import dilate_erode
+    for i in sys.modules.keys() :
+        if i.startswith("plugins.") :
+            plugins.append( eval(i.split('.')[1]) )
+            names.append( i.split('.')[1] )
+    # for i in os.listdir( path("plugins") ):
+    #     if not i.startswith("__") and i.endswith(".py") :
+    #         name = i.split('.')[0]
+    #         print("LOADED PLUGIN : " + name)
+    #         plugins.append( importlib.import_module("plugins." + name) )
+    #         names.append( name )
+    #         if "outline" in i :
+    #             names.insert(0, names.pop( len(names)-1 ) )
+    #             plugins.insert(0, plugins.pop( len(plugins)-1 ) )
     return plugins, names
 
 def path(relative_path):

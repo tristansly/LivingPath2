@@ -1,6 +1,6 @@
 import freetype as ft
 import numpy as np
-import potrace # pip install potracer
+import potracer # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -19,9 +19,6 @@ potrace_min = 2.0
 potrace_size = 1
 potrace_simple = 1
 display_points = 0
-outline_width = 100
-outline_join = 2
-outline_join_limit = 160000
 
 imgMargin = 200
 
@@ -73,7 +70,7 @@ def pt(a):
     coef = 64
     return (a.x/coef, a.y/coef)
 
-def glyph_to_font_outline(in_font, font, g, group):
+def glyph_to_font_outline(g, in_font, font, group):
     gs = in_font.getGlyphSet()
     fpen = FreeTypePen( gs )
     gs[g].draw(fpen)
@@ -84,7 +81,7 @@ def glyph_to_font_outline(in_font, font, g, group):
     tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
 
     stroker = ft.Stroker()
-    stroker.set(outline_width*20, ft.FT_STROKER_LINECAP_BUTT, outline_join, outline_join_limit)
+    stroker.set(group.outline_width*20, ft.FT_STROKER_LINECAP_BUTT, group.outline_join, group.outline_join_limit)
     stroker.parse_outline(outline, False)
 
     n_points, n_contours = stroker.get_counts()
@@ -98,12 +95,14 @@ def glyph_to_font_outline(in_font, font, g, group):
 
 
 def vectorization(img):
+    # C++ binding : pypotrace - version mac (a tester) https://github.com/flupke/pypotrace
+    # full python : potracer - https://github.com/tatarize/potrace
     width = float(img.size[0])*potrace_size
     wpercent = float(width)/float(img.size[0])
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
-    bmp = potrace.Bitmap(data) # Create a bitmap from the array
+    bmp = potracer.Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=potrace_curves, opticurve=potrace_simple, opttolerance=potrace_simplify, turdsize=potrace_min)
     return path
 

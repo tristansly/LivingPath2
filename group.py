@@ -1,6 +1,8 @@
 # import gui_utils as gui
 import gui
 import main
+import gui_utils
+import utils
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from functools import partial
 
@@ -16,6 +18,9 @@ class Group():
         s.layers = []
         s.gui_op = []
         s.op = 0
+        s.outline_width = 100
+        s.outline_join = 2
+        s.outline_join_limit = 160000
         s.frame = ttk.Frame(gui.gui_frame_layer, style='Card.TFrame')
         for i in range(4) :
             s.gui_op.append( ttk.Button(s.frame, text=i, width=1.2) )
@@ -57,25 +62,7 @@ class Group():
         s.op = i
         gui.refresh()
 
-    def glyph_to_font_outline(font, g, group):
-        gs = main.font.getGlyphSet()
-        fpen = FreeTypePen( gs )
-        gs[g].draw(fpen)
-        outline = ft.Outline( fpen.outline() )
-
-        if 'glyf' in font : pen = TTGlyphPen( font.getGlyphSet() )
-        if 'CFF ' in font : pen = T2CharStringPen(600, font.getGlyphSet())
-        tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
-
-        stroker = ft.Stroker()
-        stroker.set(outline_width*20, ft.FT_STROKER_LINECAP_BUTT, outline_join, outline_join_limit)
-        stroker.parse_outline(outline, False)
-
-        n_points, n_contours = stroker.get_counts()
-        with utils.new_outline(n_points, n_contours) as stroked_outline:
-            stroker.export(stroked_outline)
-            stroked_outline.decompose(tpen, move_to=move_to,line_to=line_to,conic_to=conic_to,cubic_to=cubic_to,shift=0,delta=0)
-            tpen.closePath()
-
-        if 'glyf' in font : font['glyf'][g] = pen.glyph(dropImpliedOnCurves=False)
-        if 'CFF ' in font : font['CFF '].cff.topDictIndex[0].CharStrings[g] = pen.getCharString()
+    def gui(s, frame):
+        gui_utils.Slider(frame, layer=s, max=200, name='outline_width' ).grid(column=1, row=7, sticky=tk.W)
+        gui_utils.Slider(frame, layer=s, max=3, name='outline_join' ).grid(column=1, row=9, sticky=tk.W)
+        gui_utils.Slider(frame, layer=s, max=300000, name='outline_join_limit' ).grid(column=1, row=10, sticky=tk.W)

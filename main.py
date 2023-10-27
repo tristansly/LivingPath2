@@ -4,6 +4,8 @@ import font_utils
 import gui
 from group import Group
 
+from base_plugin import Plugin
+
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import math, os
 from fontTools import ttLib
@@ -32,7 +34,8 @@ def get_current_img():
     # img = glyph_to_img_outline(font, current_glyph)
 
     for g in groups:
-        glyph_to_font_outline(font, tmp_font, current_glyph, g) # .002 sec
+        glyph_to_font_outline(current_glyph, font, tmp_font, g) # .002 sec
+        # glyph_to_font_outline(font, tmp_font, current_glyph, g) # .002 sec
         img = glyph_to_img(tmp_font, current_glyph) # .009 sec
         for l in g.layers:
             img = l.run(img)
