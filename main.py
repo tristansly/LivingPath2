@@ -63,10 +63,12 @@ def modify_font():
     for key in font.getGlyphSet():
         # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
         if  key in list('qwertyuioplkjhgfdsazxcvbnmV'):
+            global current_glyph
             current_glyph = key
             img = get_current_img()
             # img = glyph_to_img(font, key)
-            path = vectorization( algo(img) )
+            i = algo(img)
+            path = vectorization( i )
             path_to_font(path, key, font)
         # else:
         #     print(key, end=' ')  # check uncomputed glyph

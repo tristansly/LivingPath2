@@ -162,7 +162,7 @@ def load_new_font(data, refresh=False):
     # main.tmp_font = TTFont( utils.path(data), recalcBBoxes=False )
     gui_font_info['name'].set( str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
-    print( f'LOAD FONT : rfrsh={refresh} {str(main.font['name'].getName(1, 3, 1))}' )
+    print( f'LOAD FONT : rfrsh={refresh}' )
     if refresh : refresh()
 
 

@@ -1,6 +1,6 @@
 import freetype as ft
 import numpy as np
-import potrace # pip install potracer
+import potracer # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -82,12 +82,18 @@ def glyph_to_font_outline(g, in_font, font, group):
     tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
 
     stroker = ft.Stroker()
-    stroker.set(l.outline_width*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
+    stroker.set( l.outline_width*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
+    if not l.outline and l.outline_width>100 :
+        stroker.set( (l.outline_width-100)*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
+    if not l.outline and l.outline_width<=100 :
+        stroker.set( (100-l.outline_width)*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
     stroker.parse_outline(outline, False)
 
     n_points, n_contours = stroker.get_counts()
     with utils.new_outline(n_points, n_contours) as stroked_outline:
-        stroker.export(stroked_outline)
+        if l.outline     : stroker.export(stroked_outline)
+        if not l.outline and l.outline_width>100: stroker.export_border(outline.get_outside_border(),stroked_outline)
+        if not l.outline and l.outline_width<=100: stroker.export_border(outline.get_inside_border(),stroked_outline)
         stroked_outline.decompose(tpen, move_to=move_to,line_to=line_to,conic_to=conic_to,cubic_to=cubic_to,shift=0,delta=0)
         tpen.closePath()
 
@@ -103,7 +109,7 @@ def vectorization(img):
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
-    bmp = potrace.Bitmap(data) # Create a bitmap from the array
+    bmp = potracer.Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=potrace_curves, opticurve=potrace_simple, opttolerance=potrace_simplify, turdsize=potrace_min)
     return path
 
@@ -135,8 +141,8 @@ def operator_img(img, img2, op):
     if op==0 : img = ImageChops.darker( img, img2 )
     elif op==1 : img = ImageChops.lighter( img, img2 )
     elif op==2 : img = ImageChops.add( img, img2 )
-    elif op==3 : img = ImageChops.add( ImageOps.invert(img), img1 )
-    elif op==4 : img = ImageChops.add( img, ImageOps.invert(img1) )
+    elif op==3 : img = ImageChops.add( ImageOps.invert(img), img2 )
+    elif op==4 : img = ImageChops.add( img, ImageOps.invert(img2) )
     elif op==5 : img = ImageOps.invert( ImageChops.difference(img, img2) )
     return img
 
