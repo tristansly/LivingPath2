@@ -1,6 +1,6 @@
 import freetype as ft
 import numpy as np
-import potracer # pip install potracer
+import potrace # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -71,6 +71,7 @@ def pt(a):
     return (a.x/coef, a.y/coef)
 
 def glyph_to_font_outline(g, in_font, font, group):
+    l = group.layers[0]
     gs = in_font.getGlyphSet()
     fpen = FreeTypePen( gs )
     gs[g].draw(fpen)
@@ -81,7 +82,7 @@ def glyph_to_font_outline(g, in_font, font, group):
     tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
 
     stroker = ft.Stroker()
-    stroker.set(group.outline_width*20, ft.FT_STROKER_LINECAP_BUTT, group.outline_join, group.outline_join_limit)
+    stroker.set(l.outline_width*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
     stroker.parse_outline(outline, False)
 
     n_points, n_contours = stroker.get_counts()
@@ -102,7 +103,7 @@ def vectorization(img):
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
-    bmp = potracer.Bitmap(data) # Create a bitmap from the array
+    bmp = potrace.Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=potrace_curves, opticurve=potrace_simple, opttolerance=potrace_simplify, turdsize=potrace_min)
     return path
 
@@ -130,13 +131,14 @@ def path_to_font(path, glyph, font):
     if 'glyf' in font : font['glyf'][glyph] = pen.glyph(dropImpliedOnCurves=True)
     if 'CFF ' in font : font['CFF '].cff.topDictIndex[0].CharStrings[glyph] = pen.getCharString()
 
-def operator_img(img, img2, operator):
-    op = {0 : ImageChops.add,
-        1 : ImageChops.difference,
-        2 : ImageChops.darker,
-        3 : ImageChops.lighter
-    }
-    return op[operator]( img, img2 )
+def operator_img(img, img2, op):
+    if op==0 : img = ImageChops.darker( img, img2 )
+    elif op==1 : img = ImageChops.lighter( img, img2 )
+    elif op==2 : img = ImageChops.add( img, img2 )
+    elif op==3 : img = ImageChops.add( ImageOps.invert(img), img1 )
+    elif op==4 : img = ImageChops.add( img, ImageOps.invert(img1) )
+    elif op==5 : img = ImageOps.invert( ImageChops.difference(img, img2) )
+    return img
 
 def draw_points(path, img): # draw visual beziers with PIL
     if display_points :

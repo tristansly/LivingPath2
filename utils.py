@@ -8,7 +8,6 @@ import freetype as ft
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
-    from plugins import outline
     from plugins import blur
     from plugins import dilate_erode
     for i in sys.modules.keys() :
@@ -21,9 +20,6 @@ def load_plugins():
     #         print("LOADED PLUGIN : " + name)
     #         plugins.append( importlib.import_module("plugins." + name) )
     #         names.append( name )
-    #         if "outline" in i :
-    #             names.insert(0, names.pop( len(names)-1 ) )
-    #             plugins.insert(0, plugins.pop( len(plugins)-1 ) )
     return plugins, names
 
 def path(relative_path):

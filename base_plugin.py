@@ -4,10 +4,7 @@ import main
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from functools import partial
 
-import cairo
-from io import BytesIO
 from PIL import Image
-import pprint
 
 class Plugin():
     """Base plugin."""

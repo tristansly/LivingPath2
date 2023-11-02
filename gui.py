@@ -50,6 +50,7 @@ def global_Interface(root):
     menu_items['New layer'].add_separator()
     for i in range(len(main.plugins)) :
         menu_items['New layer'].add_command( label=main.names[i], command=partial(main.new_layer,i) )
+
     # layout on the root window
     # root.columnconfigure(0, weight=1) # ????????
     # root.columnconfigure(1, weight=2)
@@ -161,7 +162,7 @@ def load_new_font(data, refresh=False):
     # main.tmp_font = TTFont( utils.path(data), recalcBBoxes=False )
     gui_font_info['name'].set( str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
-    print( f'LOAD FONT : (refresh={refresh}) {utils.path(data)}' )
+    print( f'LOAD FONT : rfrsh={refresh} {str(main.font['name'].getName(1, 3, 1))}' )
     if refresh : refresh()
 
 

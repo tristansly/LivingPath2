@@ -46,8 +46,6 @@ class Slider(ttk.Frame):
     def get(s):
         return s.format % float( s.slider.get() )
 
-
-
 class Checkbutton(ttk.Frame):
     def __init__(s, context, layer=None, name=''):
         super(Checkbutton, s).__init__(context)
@@ -75,5 +73,5 @@ class Checkbutton(ttk.Frame):
 
 def get_calling_module():
     name = inspect.getmodule(inspect.stack()[2][0]).__name__.split('.')[-1]
-    print('aaaaaaaaaaa', name)
+    print('get calling module', name)
     return font_utils if name == 'gui' else get_plugin(name)

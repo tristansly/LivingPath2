@@ -35,7 +35,6 @@ def get_current_img():
 
     for g in groups:
         glyph_to_font_outline(current_glyph, font, tmp_font, g) # .002 sec
-        # glyph_to_font_outline(font, tmp_font, current_glyph, g) # .002 sec
         img = glyph_to_img(tmp_font, current_glyph) # .009 sec
         for l in g.layers:
             img = l.run(img)
@@ -64,7 +63,9 @@ def modify_font():
     for key in font.getGlyphSet():
         # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
         if  key in list('qwertyuioplkjhgfdsazxcvbnmV'):
-            img = glyph_to_img(font, key)
+            current_glyph = key
+            img = get_current_img()
+            # img = glyph_to_img(font, key)
             path = vectorization( algo(img) )
             path_to_font(path, key, font)
         # else:
@@ -82,12 +83,11 @@ def select_layer( selected ):
             lay.gui_button.state(["!selected"])
     layer.gui_button.state(["selected"])
     layer.gui( gui.gui_frame_param )
-    print('( select_layer : group',layer.group.n,' - layer', layer.n,')')
+    print('SELECT_LAYER : group',layer.group.n,' - layer', layer.n)
 
-def new_layer(i, refresh=True):
-    print('( new_layer : group',layer.group.n,' - layer', layer.n,')')
+def new_layer(i):
+    print('SELECT_LAYER : group',layer.group.n,' - layer', layer.n)
     layer.group.new_layer(i)
-    # groups[0].new_layer(i)
 
 def new_group():
     groups.append( Group() )
@@ -110,6 +110,7 @@ def main():
     root.mainloop()
     print('main')
 
+    modify_font()
 
 
 if __name__ == "__main__":
