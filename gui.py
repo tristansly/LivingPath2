@@ -1,11 +1,8 @@
 import main
 import utils
 import font_utils
-import gui_utils as g
+import gui_utils as gu
 import gui_drag_drop
-
-# import inspect
-# import pprint
 from PIL import ImageTk, Image
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.ttGlyphSet import _TTGlyphGlyf
@@ -15,85 +12,78 @@ from tkinterdnd2 import DND_FILES
 from functools import partial
 
 def global_Interface(root):
-    root.title('Alt-Font')
-    ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
-    wm, hm = ws/10, hs/10
-    root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
-    root.geometry('%dx%d+%d+%d' % (ws-350, hs, 0, 0))
-    # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
-    # if ws < 1500 : root.attributes("-fullscreen", True)
-    print(ws)
-    root.resizable()
-    root.iconphoto(False, ImageTk.PhotoImage(Image.open(utils.path('files/logo.png'))))
-    # root.tk.call('tk', 'scaling', 1.5)
-    root.tk.call("source", utils.path("files/azure.tcl")) # theme
-    root.tk.call("set_theme", "light")
-    root.drop_target_register(DND_FILES) # drag & drop
-    root.dnd_bind('<<Drop>>', lambda e: drop(root, e) )
-    # root.option_add('*tearOff', 0)
     main.plugins, main.names = utils.load_plugins() # has to be loaded here
-    menubar = Menu(root)
-    root.config(menu=menubar)
-    menu_items = dict.fromkeys( [ 'File', 'Help', 'New layer' ] )
-    for key, val in menu_items.items():
-        menu_items[key] = Menu(menubar)
-        menubar.add_cascade( label=key, menu=menu_items[key] )
+    setup_root(root)
+    setup_menubar(root)
 
-    menu_items['File'].add_command(label='New')
-    menu_items['File'].add_command(label='Open...')
-    menu_items['File'].add_command(label='Export', command=main.modify_font )
-    menu_items['File'].add_separator()
-    menu_items['File'].add_command( label='Exit', command=root.destroy )
-    menu_items['Help'].add_command(label='Welcome')
-    menu_items['Help'].add_command(label='About...')
-    menu_items['New layer'].add_command( label='New group', command=main.new_group )
-    menu_items['New layer'].add_separator()
-    for i in range(len(main.plugins)) :
-        menu_items['New layer'].add_command( label=main.names[i], command=partial(main.new_layer,i) )
+    global gui_zone
+    global gui_para
+    frm_style = 'Card.TFrame'
+    frm_style = ''
+    gui_zone = ttk.Frame(root, style=frm_style)
+    ctn_para = ttk.Frame(root, style=frm_style)
+    gui_para = ttk.Frame(ctn_para, style=frm_style)
+    gui_glob = ttk.Frame(ctn_para, style=frm_style)
+    gui_info = ttk.Frame(root, style=frm_style)
+    notebook = ttk.Notebook(root)
 
-    # layout on the root window
-    # root.columnconfigure(0, weight=1) # ????????
-    # root.columnconfigure(1, weight=2)
+    ttk.Sizegrip(root).pack(side='bottom', anchor='se',  expand=False, padx=(0, 5), pady=(0, 5))
+    gui_zone.pack(side='top', fill='x', expand=True)
+    ctn_para.pack(side='left', fill='both', expand=False, padx=20, pady=20)
+    gui_para.pack(side='top', fill='both', expand=False)
+    gui_glob.pack(side='bottom', fill=None, expand=False,  anchor='sw')
+    gui_info.pack(side='right', fill=None, expand=False)
+    notebook.pack(side='left', fill='both', expand=True)
 
-    global gui_frame_layer
-    gui_frame_layer = ttk.Frame(root, style='Card.TFrame')
-    gui_frame_layer.grid(column=0, row=0, columnspan=3, sticky='swne')
-    root.bind("<Button-1>",gui_drag_drop.on_click)
+    # gui_zone.grid(column=0, row=0, columnspan=3, sticky='swne')
+    # gui_para.grid(column=0, row=1, columnspan=1, sticky='nw', padx=20, pady=20 )
+    # gui_glob.grid(column=0, row=2, sticky='s')
+    # gui_info.grid(column=3, row=0, sticky='swne')
+    # notebook.grid(row=1, column=2, sticky='nw', rowspan=2, columnspan=1)
 
-    global gui_frame_param
-    gui_frame_param = ttk.Frame(root, style='Card.TFrame')
-    gui_frame_param.grid(column=0, row=1, columnspan=1, sticky='swne')
-    main.new_group()
+    notebook.columnconfigure(0, weight=1)
+    notebook.rowconfigure(0, weight=1)
 
-    frame = ttk.Frame(root, style='Card.TFrame')
-    g.Slider(frame, max=1.34, name='potrace_curves', format='%0.2f').grid(column=1, row=3, sticky=tk.W)
-    g.Slider(frame, max=1.5, name='potrace_simplify', format='%0.2f').grid(column=1, row=4, sticky=tk.W)
-    g.Slider(frame, max=100, name='potrace_min' ).grid(column=1, row=5, sticky=tk.W)
-    g.Slider(frame, max=2, name='potrace_size', format='%0.2f' ).grid(column=1, row=6, sticky=tk.W)
-    # Slider(frame, 20, 0, 100, 40, 'name1', '%0.2f', flag='eco').grid(column=1, row=1, sticky=tk.W)
-    g.Checkbutton(frame, name='potrace_simple').grid(column=0, row=1, sticky=tk.W)
-    g.Checkbutton(frame, name='test_bool').grid(column=0, row=3, sticky=tk.W)
+    gui_zone.bind_all("<Button-1>",gui_drag_drop.on_click)
+
+    gu.Slider(gui_glob, max=1.34, name='potrace_curves', format='%0.2f').pack(anchor='w')
+    gu.Slider(gui_glob, max=1.5, name='potrace_simplify', format='%0.2f').pack(anchor='w')
+    gu.Slider(gui_glob, max=100, name='potrace_min' ).pack(anchor='w')
+    gu.Slider(gui_glob, max=2, name='potrace_size', format='%0.2f' ).pack(anchor='w')
+    # Slider(gui_glob, 20, 0, 100, 40, 'name1', '%0.2f', flag='eco').pack(anchor='w')
+    gu.Checkbutton(gui_glob, name='potrace_simple').pack(anchor='w')
+    gu.Checkbutton(gui_glob, name='test_bool').pack(anchor='w')
     global check_display_points
-    check_display_points = g.Checkbutton(frame, name='display_points')
-    check_display_points.grid(column=0, row=2, sticky=tk.W)
+    check_display_points = gu.Checkbutton(gui_glob, name='display_points')
+    check_display_points.pack(anchor='w')
 
-    for widget in frame.winfo_children():
-        widget.grid(padx=5, pady=5)
+    # for widget in gui_glob.winfo_children(): widget.grid(padx=0, pady=0, sticky='w')
 
-    frame.grid(column=0, row=1, sticky='s')
-
-    frame = ttk.LabelFrame(root, style='Card.TFrame', text='Global Info')
-    frame.grid(column=3, row=0, sticky='swne')
-    # frame.columnconfigure(0, weight=0)
     global gui_font_info
     gui_font_info = {'name':tk.StringVar(), 'numG':tk.StringVar() }
-    ttk.Label(frame, textvariable=gui_font_info['name'] ).grid(column=0, row=0)
-    ttk.Label(frame, textvariable=gui_font_info['numG'] ).grid(column=1, row=0)
+    ttk.Label(gui_info, textvariable=gui_font_info['name'] ).grid(column=0, row=0)
+    ttk.Label(gui_info, textvariable=gui_font_info['numG'] ).grid(column=1, row=0)
+    ttk.Entry(gui_info, width=30).grid(column=0, row=3)
+    for widget in gui_info.winfo_children(): widget.grid(padx=5, pady=5)
 
-    ttk.Button(frame, text='Replace').grid(column=0, row=1)
-    ttk.Button(frame, text='Replace All').grid(column=0, row=2)
-    ttk.Entry(frame, width=30).grid(column=0, row=3)
-    for widget in frame.winfo_children(): widget.grid(padx=5, pady=5)
+
+    notebook.enable_traversal()
+    notebook.bind('<<NotebookTabChanged>>', focus_current_tab)
+    global tab_2
+    tab_1 = ttk.Frame(notebook)
+    for index in [0, 1]:
+        tab_1.columnconfigure(index=index, weight=1)
+        tab_1.rowconfigure(index=index, weight=1)
+    notebook.add(tab_1, text="Tab 1")
+    tab_2 = ttk.Frame(notebook)
+    notebook.add(tab_2, text="Tab 2")
+
+    global img_letter
+    img = ImageTk.PhotoImage(main.img)
+    img_letter = Label(tab_1, image=img, background='white')
+    img_letter.pack(ipadx=20, ipady=20, fill='both', expand=True)
+
+    # img = ImageTk.PhotoImage( main.img.resize((10,10),1) )
 
     # general key control
     root.bind("<Escape>", lambda x: production_esc(root))
@@ -102,22 +92,14 @@ def global_Interface(root):
     root.bind("<KeyPress-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(1) )
     root.bind("<KeyRelease-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(0) )
 
-    img = ImageTk.PhotoImage(main.img)
-    global img_letter
-    img_letter = Label(root, image=img)
-    img_letter.grid(row=1, column=2,sticky=tk.NS, rowspan=2)
+    main.new_group()
 
-
-    img = ImageTk.PhotoImage( main.img.resize((10,10),1) )
-    global btn_save_editor
-    btn_save_editor = ttk.Button(root, text='Replace', compound=tk.LEFT)
-    btn_save_editor.grid(row=0, column=0,rowspan=2)
-
-    # self.facebookButton = ttk.Button(self.mainFrame, text='Facebook', image=self.facebookIcon, compound=LEFT)
+def focus_current_tab(e):
+    e.widget.winfo_children()[e.widget.index(e.widget.select())].focus_set()
 
 def production_esc(root):
     root.destroy()
-    main.modify_font()
+
 def refresh():
     img = main.get_current_img()
 
@@ -125,7 +107,6 @@ def refresh():
     global img_letter
     img_letter.configure( image=img )
     img_letter.image = img
-
 
 def show_glyph(flag=''):
     glyph_set = main.font.getGlyphSet()
@@ -151,7 +132,6 @@ def show_glyph(flag=''):
         else :
             print('show glyph error', flag, main.current_glyph)
 
-
 def drop(root,e):
     load_new_font(e.data)
 def load_new_font(data, refresh=False):
@@ -164,6 +144,67 @@ def load_new_font(data, refresh=False):
     gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
     print( f'LOAD FONT : rfrsh={refresh}' )
     if refresh : refresh()
+
+#----------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------
+def setup_menubar(root):
+    menubar = Menu(root)
+    root.config(menu=menubar)
+    menu_items = dict.fromkeys( [ 'File', 'Help', 'New layer' ] )
+    for key, val in menu_items.items():
+        menu_items[key] = Menu(menubar)
+        menubar.add_cascade( label=key, menu=menu_items[key] )
+
+    menubar.add_command( label='New group', command=main.new_group )
+
+    menu_items['File'].add_command(label='New')
+    menu_items['File'].add_command(label='Open...')
+    menu_items['File'].add_command(label='Export', command=main.modify_font )
+    menu_items['File'].add_separator()
+    menu_items['File'].add_command( label='Exit', command=root.destroy )
+    menu_items['Help'].add_command(label='Welcome')
+    menu_items['Help'].add_command(label='About...')
+    for i in range(len(main.plugins)) :
+        menu_items['New layer'].add_command( label=main.names[i], command=partial(main.new_layer,i) )
+    menu_items['New layer'].add_separator()
+
+#----------------------------------------------------------------------------------
+def setup_root(root):
+    root.title('Alt-Font')
+    ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
+    wm, hm = ws/10, hs/10
+    root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
+    root.geometry('%dx%d+%d+%d' % (ws-550, hs-300, 0, 0)) #production
+    # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
+    # if ws < 1500 : root.attributes("-fullscreen", True)
+    # root['background'] = 'white' # for linux distro ?
+    root.iconphoto(False, ImageTk.PhotoImage(Image.open(utils.path('files/logo.png'))))
+    # root.tk.call('tk', 'scaling', 1.5)
+    root.tk.call("source", utils.path("files/azure.tcl")) # theme
+    root.tk.call("set_theme", "light")
+    root.drop_target_register(DND_FILES) # drag & drop
+    root.resizable()
+    root.dnd_bind('<<Drop>>', lambda e: drop(root, e) )
+    style = ttk.Style()
+    style.layout('no_indicatoron.TCheckbutton', # pathfinders buttons
+             [('Checkbutton.padding', {'sticky': 'nswe', 'children': [
+                 # ('Checkbutton.indicator', {'side': 'left', 'sticky': ''}),
+                 ('Checkbutton.focus', {'side': 'left', 'sticky': 'w',
+                                        'children':
+                                        [('Checkbutton.label', {'sticky': 'nswe'})]})]})]
+             )
+    style.configure('cover.TFrame', background="grey93")
+    # root.option_add('*tearOff', 0)
+
+    # layout on the root window
+    root.columnconfigure(0, weight=2) # ????????
+    root.columnconfigure(1, weight=2)
+#----------------------------------------------------------------------------------
+
+
+
+
 
 
 if __name__ == "__main__":

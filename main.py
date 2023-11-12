@@ -20,11 +20,10 @@ font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 tmp_font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 img = glyph_to_img(font, current_glyph)
 
-
 from time import perf_counter
 def time(msg):
     global last_time
-    if msg : print( str(perf_counter()-last_time).replace('0','-')[0:5],msg,end='' )
+    if msg : print(' ||| ', str(perf_counter()-last_time).replace('0','-')[0:5],msg,end='' )
     if not msg : print("\nTIMER : ",end='')
     last_time = perf_counter()
 
@@ -35,6 +34,7 @@ def get_current_img():
 
     for g in groups:
         glyph_to_font_outline(current_glyph, font, tmp_font, g) # .002 sec
+        global img
         img = glyph_to_img(tmp_font, current_glyph) # .009 sec
         for l in g.layers:
             img = l.run(img)
@@ -42,6 +42,26 @@ def get_current_img():
             img = operator_img(img, prev_img, g.op)
         prev_img = img
     time(" algo ")
+
+    # ////
+    path = vectorization( img )
+    time("vecto")
+    path_to_font(path, current_glyph, font)
+    time("path_to_Font")
+
+    font.save( utils.path("out.otf") )
+    time("save_font: ")
+
+    from PIL import Image, ImageDraw, ImageFont
+    from tkinter import ttk
+    time("load_font")
+    img = Image.new("RGB", (1000, 1000))
+    d = ImageDraw.Draw(img)
+    new_font = ImageFont.truetype("out.otf", size=148, layout_engine=ImageFont.Layout.BASIC)
+    d.text((0, 350), "Vil VAYLBg", font=new_font, fill="#f00")
+    time("write")
+
+
 
     if font_utils.display_points :
         path = vectorization( img )
@@ -52,14 +72,8 @@ def get_current_img():
         time(" display vecto ")
     return img
 
-def algo(img):
-    for g in groups:
-        for l in g.layers:
-            img = l.run(img)
-    return img
-
 def modify_font():
-    print("unprocessed glyphs :")
+    # print("unprocessed glyphs :")
     for key in font.getGlyphSet():
         # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
         if  key in list('qwertyuioplkjhgfdsazxcvbnmV'):
@@ -67,8 +81,7 @@ def modify_font():
             current_glyph = key
             img = get_current_img()
             # img = glyph_to_img(font, key)
-            i = algo(img)
-            path = vectorization( i )
+            path = vectorization( img )
             path_to_font(path, key, font)
         # else:
         #     print(key, end=' ')  # check uncomputed glyph
@@ -79,12 +92,12 @@ def modify_font():
 def select_layer( selected ):
     global layer
     layer = selected
-    for child in gui.gui_frame_param.winfo_children(): child.destroy()
+    for child in gui.gui_para.winfo_children(): child.destroy()
     for grp in groups :
         for lay in grp.layers :
             lay.gui_button.state(["!selected"])
     layer.gui_button.state(["selected"])
-    layer.gui( gui.gui_frame_param )
+    layer.gui( gui.gui_para )
     print('SELECT_LAYER : group',layer.group.n,' - layer', layer.n)
 
 def new_layer(i):
@@ -93,8 +106,6 @@ def new_layer(i):
 
 def new_group():
     groups.append( Group() )
-    select_layer( groups[-1].layers[-1] )
-    groups[-1].position( len(groups)-1 )
     print('NEW GROUP : ', layer.group.n)
 
 def del_group(n):
@@ -104,7 +115,6 @@ def del_group(n):
     if layer.group.n == n : select_layer( groups[0].layers[-1] )
 
 def main():
-    global root
     root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
     gui.global_Interface(root)
     gui.load_new_font(utils.path("files/1.ttf"))
@@ -112,7 +122,7 @@ def main():
     root.mainloop()
     print('main')
 
-    modify_font()
+    # modify_font()
 
 
 if __name__ == "__main__":

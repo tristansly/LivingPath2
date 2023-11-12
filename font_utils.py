@@ -139,11 +139,10 @@ def path_to_font(path, glyph, font):
 
 def operator_img(img, img2, op):
     if op==0 : img = ImageChops.darker( img, img2 )
-    elif op==1 : img = ImageChops.lighter( img, img2 )
-    elif op==2 : img = ImageChops.add( img, img2 )
-    elif op==3 : img = ImageChops.add( ImageOps.invert(img), img2 )
-    elif op==4 : img = ImageChops.add( img, ImageOps.invert(img2) )
-    elif op==5 : img = ImageOps.invert( ImageChops.difference(img, img2) )
+    elif op==1 : img = ImageChops.add( ImageOps.invert(img), img2 )
+    elif op==2 : img = ImageChops.add( img, ImageOps.invert(img2) )
+    elif op==3 : img = ImageChops.lighter( img, img2 )
+    elif op==4 : img = ImageOps.invert( ImageChops.difference(img, img2) )
     return img
 
 def draw_points(path, img): # draw visual beziers with PIL

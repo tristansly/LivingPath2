@@ -10,6 +10,7 @@ def load_plugins():
     # alternative to importlib :
     from plugins import blur
     from plugins import dilate_erode
+    from plugins import pixel
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
             plugins.append( eval(i.split('.')[1]) )

@@ -13,8 +13,8 @@ class Layer(Plugin):
         s.threshold_val = 90
 
     def gui(s, frame):
-        gui.Slider(frame, max=200, layer=s, name='blur_val').grid(column=1, row=1, sticky='W')
-        gui.Slider(frame, max=200, layer=s, name='threshold_val').grid(column=1, row=2, sticky='W')
+        gui.Slider(frame, max=200, layer=s, name='blur_val').grid(column=0, row=1, sticky='ew')
+        gui.Slider(frame, max=200, layer=s, name='threshold_val').grid(column=0, row=2, sticky='ew')
 
     def run(s, img):
         img = img.filter( ImageFilter.GaussianBlur(radius = s.blur_val) )

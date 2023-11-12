@@ -28,11 +28,11 @@ class Slider(ttk.Frame):
 
     def update(s, event):
         s.val.configure(text=s.get())
-        if s.flag != 'eco' and getattr( s.layer, s.name ) != None:
+        if ( s.flag!='eco' and not font_utils.display_points ) and getattr( s.layer, s.name )!= None :
             s.set_attach_val()
             gui.show_glyph()
     def update_eco(s, event):
-        if s.flag == 'eco' and getattr( s.layer, s.name ) != None:
+        if ( s.flag=='eco' or font_utils.display_points ) and getattr( s.layer, s.name )!= None :
             s.set_attach_val()
             gui.show_glyph()
 
@@ -71,7 +71,9 @@ class Checkbutton(ttk.Frame):
 
 #----------------------------------------------------------------------------------
 
-def get_calling_module():
-    name = inspect.getmodule(inspect.stack()[2][0]).__name__.split('.')[-1]
-    print('get calling module', name)
-    return font_utils if name == 'gui' else get_plugin(name)
+# def get_calling_module():
+#     name = inspect.getmodule(inspect.stack()[2][0]).__name__.split('.')[-1]
+#     print('get calling module', name)
+#     return font_utils if name == 'gui' else get_plugin(name)
+
+#----------------------------------------------------------------------------------
