@@ -8,15 +8,9 @@ from PIL import Image
 class Layer(Plugin):
     """outline font layer"""
 
-    def __init__(s):
-        super(Layer, s).__init__()
-
-        s.contour_val = 100
-        s.kernel_size = 5
-
     def gui(s, frame):
-        gui.Slider(frame, max=200, layer=s, name='contour_val').grid(column=1, row=1, sticky='W')
-        gui.Slider(frame, max=20, layer=s, name='kernel_size').grid(column=1, row=2, sticky='W')
+        gui.Slider(frame, max=200, ini=100, layer=s, name='contour_val').grid(column=1, row=1, sticky='W')
+        gui.Slider(frame, max=20, ini=5, layer=s, name='kernel_size').grid(column=1, row=2, sticky='W')
 
     def run(s, img):
 
@@ -29,12 +23,5 @@ class Layer(Plugin):
         else :
             erosion = cv2.erode(cv_img,kernel,iterations = s.contour_val-100 )
 
-
-
         img = Image.fromarray(erosion)
-
         return img
-
-    # def initiate(s, g):
-    #     shape = g
-    #     return shape

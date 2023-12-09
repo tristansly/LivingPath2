@@ -16,7 +16,7 @@ class Plugin():
     def setup_gui(s):
         s.frame = ttk.Frame(gui.gui_zone)
 
-        s.gui_button = ttk.Checkbutton(s.frame, text=s.name, style='Toggle.TButton')
+        s.gui_button = ttk.Checkbutton(s.frame, text=s.name.replace('_', ' '), style='Toggle.TButton')
         s.gui_button.grid( column=1, row=0, padx=2, pady=2 )
 
         s.gui_del = ttk.Button(s.frame, text="X", width=1.2, style='Toggle.TButton')
@@ -42,7 +42,7 @@ class Plugin():
             for i, l in enumerate(g.layers) :
                 l.gui_position(i, g)
                 print("changeOrder : ",g.n, i )
-            g.set_pad()
+            g.set_drag_zone()
         gui.refresh()
 
 
@@ -50,5 +50,6 @@ class Plugin():
         img_min = ImageTk.PhotoImage( img.crop((150, 150, img.width-150, img.height-150)).resize((20,20),1) )
         gui_button.configure(image=img_min)
         gui_button.image = img_min
+
     def gui(s, frame):
         None

@@ -8,7 +8,7 @@ import utils
 import pymunk
 import pymunk.util
 from pymunk import Vec2d
-
+import math
 from PIL import Image, ImageDraw
 
 
@@ -36,16 +36,18 @@ class Layer(Plugin):
         ## Balls
         balls = []
 
-        for x in range(s.quantity):
-            mass = 1
-            radius = 50
-            inertia = pymunk.moment_for_circle(mass, 0, radius, (0, 0))
-            body = pymunk.Body(mass, inertia)
-            x = 100 # random.randint(115, 350)
-            body.position = x,400 
-            shape = pymunk.Circle(body, radius, Vec2d(0, 0))
-            s.space.add(body, shape)
-            balls.append(shape)
+        q =  int(math.sqrt(s.quantity))
+        for x in range(q):
+            for y in range(q):
+                mass = 1
+                radius = 20
+                inertia = pymunk.moment_for_circle(mass, 0, radius, (0, 0))
+                body = pymunk.Body(mass, inertia)
+                # x = 100 # random.randint(115, 350)
+                body.position = 100+ x*30, 100+ y*30
+                shape = pymunk.Circle(body, radius, Vec2d(0, 0))
+                s.space.add(body, shape)
+                balls.append(shape)
 
         balls_to_remove = []
 

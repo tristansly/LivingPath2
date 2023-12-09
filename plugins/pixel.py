@@ -6,16 +6,10 @@ from PIL import ImageFilter, Image
 class Layer(Plugin):
     """Pixelize letter."""
 
-    def __init__(s):
-        super(Layer, s).__init__()
-        s.size_val = 20
-        s.horizontal_position_val = 0
-        s.vertical_position_val = 0
-
     def gui(s, frame):
-        gui.Slider(frame, max=300, min=1, layer=s, name='size_val').grid(column=1, row=1, sticky='W')
-        gui.Slider(frame, max=100, layer=s, name='horizontal_position_val').grid(column=1, row=2, sticky='W')
-        gui.Slider(frame, max=100, layer=s, name='vertical_position_val').grid(column=1, row=3, sticky='W')
+        gui.Slider(frame, max=300, min=1, ini= 20, layer=s, name='size_val').grid(column=1, row=1, sticky='W')
+        gui.Slider(frame, max=100,ini= 0, layer=s, name='horizontal_position_val').grid(column=1, row=2, sticky='W')
+        gui.Slider(frame, max=100,ini= 0, layer=s, name='vertical_position_val').grid(column=1, row=3, sticky='W')
 
     def run(s, img):
         width = img.size[0]

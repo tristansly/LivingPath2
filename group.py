@@ -20,7 +20,8 @@ class Group():
         s.op = 0
         s.gui_op, s.ico_on, s.ico_off = [], [], []
         s.op_frame = ttk.Frame(gui.gui_zone, style='Card.TFrame')
-        s.pad_frame = None
+        s.drag_frame = None
+        s.img = Image.new('L', (50, 50),(200))
         for i in range(5) :
             s.ico_on.append( ImageTk.PhotoImage(Image.open(utils.path('files/theme/op-on-'+str(i)+'.png')).resize((20, 20), Image.NEAREST)) )
             s.ico_off.append(ImageTk.PhotoImage(Image.open(utils.path('files/theme/op-off-'+str(i)+'.png')).resize((20, 20), Image.NEAREST)) )
@@ -41,14 +42,14 @@ class Group():
         main.layer.setup_gui()
         main.layer.gui_position( len(s.layers)-1 )
         main.select_layer( main.layer )
-        s.set_pad()
+        s.set_drag_zone()
         if not ini : gui.refresh()
         print(f'NEW LAYER : (G{s.n}) {main.layer.name}')
 
-    def set_pad(s):
-        if s.pad_frame : s.pad_frame.destroy()
-        s.pad_frame = ttk.Frame(gui.gui_zone) # style='Card.TFrame'
-        s.pad_frame.grid( column=s.n*2, row=len(s.layers), rowspan=20, sticky='nsew' )
+    def set_drag_zone(s):
+        if s.drag_frame : s.drag_frame.destroy()
+        s.drag_frame = ttk.Frame(gui.gui_zone) # style='Card.TFrame'
+        s.drag_frame.grid( column=s.n*2, row=len(s.layers), rowspan=20, sticky='nsew' )
         # gui.gui_zone.rowconfigure(s.n*2, weight=3-len(s.layers) )
 
     def del_layer(s, layer):
@@ -56,7 +57,7 @@ class Group():
             s.layers[layer].frame.destroy()
             s.layers.pop(layer)
             for l in range(len(s.layers)): s.layers[l].gui_position(l)
-            s.set_pad()
+            s.set_drag_zone()
 
             if len(s.layers) == 0 : main.del_group(s.n)
             if len(s.layers) == 0 and main.layer.group.n == s.n : main.select_layer( main.groups[0].layers[0])
@@ -80,21 +81,21 @@ class Group():
         print("SET OP : ",op)
         gui.refresh()
 
+    def img(s,img):
+        gui.refresh_img(s.img, img)
+
+
 class Layer(Plugin):
     """outline font group"""
 
     def __init__(s):
         super(Layer, s).__init__()
-        s.outline = False
-        s.outline_width = 100
-        s.outline_join = 2
-        s.outline_join_limit = 160000
 
     def gui(s, frame):
-        gui_utils.Checkbutton(frame, layer=s, name='outline'                   ).grid(column=0, row=0, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=200, name='outline_width'         ).grid(column=0, row=1, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=3, name='outline_join'            ).grid(column=0, row=2, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=300000, name='outline_join_limit' ).grid(column=0, row=3, sticky='ew')
+        gui_utils.Checkbutton(frame, layer=s, name='outline',                   ini=False ).grid(column=0, row=0, sticky='ew')
+        gui_utils.Slider(frame, layer=s, max=200, name='outline_width',         ini=100   ).grid(column=0, row=1, sticky='ew')
+        gui_utils.Slider(frame, layer=s, max=3, name='outline_join',            ini=2     ).grid(column=0, row=2, sticky='ew')
+        gui_utils.Slider(frame, layer=s, max=300000, name='outline_join_limit', ini=160000).grid(column=0, row=3, sticky='ew')
 
     def run(s, img):
         return img

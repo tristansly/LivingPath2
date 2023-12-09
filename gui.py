@@ -18,6 +18,7 @@ def global_Interface(root):
 
     global gui_zone
     global gui_para
+    global notebook
     frm_style = 'Card.TFrame'
     frm_style = ''
     gui_zone = ttk.Frame(root, style=frm_style)
@@ -46,15 +47,14 @@ def global_Interface(root):
 
     gui_zone.bind_all("<Button-1>",gui_drag_drop.on_click)
 
-    gu.Slider(gui_glob, max=1.34, name='potrace_curves', format='%0.2f').pack(anchor='w')
-    gu.Slider(gui_glob, max=1.5, name='potrace_simplify', format='%0.2f').pack(anchor='w')
-    gu.Slider(gui_glob, max=100, name='potrace_min' ).pack(anchor='w')
-    gu.Slider(gui_glob, max=2, name='potrace_size', format='%0.2f' ).pack(anchor='w')
-    # Slider(gui_glob, 20, 0, 100, 40, 'name1', '%0.2f', flag='eco').pack(anchor='w')
-    gu.Checkbutton(gui_glob, name='potrace_simple').pack(anchor='w')
-    gu.Checkbutton(gui_glob, name='test_bool').pack(anchor='w')
+    gu.Slider(gui_glob, max=1.34, name='potrace_curves', format='%0.2f', ini=0.90).pack(anchor='w')
+    gu.Slider(gui_glob, max=1.5, name='potrace_simplify', format='%0.2f', ini=0.45).pack(anchor='w')
+    gu.Slider(gui_glob, max=500, name='potrace_min' , ini=2).pack(anchor='w')
+    gu.Slider(gui_glob, max=2, name='potrace_size', format='%0.2f' , ini=1).pack(anchor='w')
+    gu.Slider(gui_glob, min=-300, max=300, name='letter_spacing', flag='eco', ini=0).pack(anchor='w')
+    gu.Checkbutton(gui_glob, name='potrace_simple', ini=True).pack(anchor='w')
     global check_display_points
-    check_display_points = gu.Checkbutton(gui_glob, name='display_points')
+    check_display_points = gu.Checkbutton(gui_glob, name='display_points', ini=False)
     check_display_points.pack(anchor='w')
 
     # for widget in gui_glob.winfo_children(): widget.grid(padx=0, pady=0, sticky='w')
@@ -80,10 +80,12 @@ def global_Interface(root):
 
     global img_letter
     img = ImageTk.PhotoImage(main.img)
-    img_letter = Label(tab_1, image=img, background='white')
+    img_letter = Label(tab_1, image=img, background='grey')
     img_letter.pack(ipadx=20, ipady=20, fill='both', expand=True)
-
-    # img = ImageTk.PhotoImage( main.img.resize((10,10),1) )
+    global img_txt
+    img = ImageTk.PhotoImage(main.img)
+    img_txt = Label(tab_2, image=img, background='white')
+    img_txt.pack(ipadx=20, ipady=20,  side="left", expand=False)
 
     # general key control
     root.bind("<Escape>", lambda x: production_esc(root))
@@ -93,26 +95,34 @@ def global_Interface(root):
     root.bind("<KeyRelease-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(0) )
 
     main.new_group()
+    main.new_layer(0) # test
 
 def focus_current_tab(e):
     e.widget.winfo_children()[e.widget.index(e.widget.select())].focus_set()
+    refresh()
 
 def production_esc(root):
     root.destroy()
 
 def refresh():
-    img = main.get_current_img()
+    if notebook.index(notebook.select())==0 : img = main.get_current_img(main.current_glyph)
+    if notebook.index(notebook.select())==1 : img = main.text_to_img("VAwert")
+    m = 0 # font_utils.imgMargin
+    img = img.crop((m, m, img.width-m, img.height-m)).resize((int(img.width/2),int(img.height/2)),1)
+    refresh_img(img_txt, img)
+    refresh_img(img_letter, img)
 
-    img = ImageTk.PhotoImage(img.crop((150, 150, img.width-150, img.height-150)).resize((int(img.width/2),int(img.height/2)),1) )
-    global img_letter
-    img_letter.configure( image=img )
-    img_letter.image = img
+def refresh_img(label, img):
+    img = ImageTk.PhotoImage(img)
+    label.configure( image = img )
+    label.image = img
+
 
 def show_glyph(flag=''):
     glyph_set = main.font.getGlyphSet()
     if flag=='prev': main.current_glyph = utils.prev_key(glyph_set, main.current_glyph)
     if flag=='next': main.current_glyph = utils.next_key(glyph_set, main.current_glyph)
-    # print('---', main.current_glyph, end=' - ')
+    print('---', main.current_glyph, end=' - ')
 
     if 'CFF ' in main.font : print('Table : CFF ')
     if 'CFF2' in main.font : print('Table : CFF2')
@@ -134,16 +144,24 @@ def show_glyph(flag=''):
 
 def drop(root,e):
     load_new_font(e.data)
-def load_new_font(data, refresh=False):
+    refresh()
+def load_new_font(data):
     if data[0] == '{': data = data[1:-1]
-    main.font = TTFont( utils.path(data), recalcBBoxes=False )
+    main.font = TTFont( utils.path(data), recalcBBoxes=False ) # recalcBBoxes=False
+    main.font_origin = TTFont( utils.path(data), recalcBBoxes=False ) # recalcBBoxes=False
+    main.tmp_font = TTFont( utils.path(data), recalcBBoxes=False )
     if 'glyf' in main.font :
         main.font = TTFont( utils.path(data), recalcBBoxes=True )
-    # main.tmp_font = TTFont( utils.path(data), recalcBBoxes=False )
+        main.font_origin = TTFont( utils.path(data), recalcBBoxes=True ) # recalcBBoxes=False
+        main.tmp_font = TTFont( utils.path(data), recalcBBoxes=True )
+    else :
+        print("[CFF] ", end=" ")
+
+    import uharfbuzz as hb
+    main.hbfont = hb.Font( hb.Face( hb.Blob.from_file_path(utils.path(data)) ) ) # load metric with uharfbuzz
     gui_font_info['name'].set( str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
-    print( f'LOAD FONT : rfrsh={refresh}' )
-    if refresh : refresh()
+    print("NEW FONT LOADED")
 
 #----------------------------------------------------------------------------------
 

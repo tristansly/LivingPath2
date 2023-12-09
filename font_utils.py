@@ -6,69 +6,68 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.misc.transform import Offset
-from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops
+from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops, ImageFont
 
 import utils
 import pprint
 
-test_bool = 0
-
-potrace_curves = 0.90
-potrace_simplify = 0.15
-potrace_min = 2.0
-potrace_size = 1
-potrace_simple = 1
-display_points = 0
-
 imgMargin = 200
 
-def glyph_to_img(font, glyph):
+def glyph_to_img(font, glyph): # unused
     gs = font.getGlyphSet()
     pen = FreeTypePen( gs )
-
-    gs[glyph].draw(pen)
+    font.getGlyphSet()[glyph].draw(pen)
     height = font['OS/2'].usWinAscent + font['OS/2'].usWinDescent + 2*imgMargin
     width = gs[glyph].width + 2*imgMargin
     img = pen.image(width=width,height=height,transform=Offset(imgMargin,font['OS/2'].usWinDescent+2*imgMargin))
     return ImageOps.invert(img.getchannel('A'))
 
 
-def glyph_to_img_outline(font,g):
-    gs = font.getGlyphSet()
+def glyph_to_img_outline(g, in_font, group):
+    gs = in_font.getGlyphSet()
     pen = FreeTypePen( gs )
     gs[g].draw(pen)
-    height = font['OS/2'].usWinAscent + font['OS/2'].usWinDescent + 2*imgMargin
-    width = gs[g].width + 2*imgMargin
-
     outline = ft.Outline( pen.outline() )
-    pen = FreeTypePen( gs ) # new empty pen
+    pen = FreeTypePen( gs )
 
     stroker = ft.Stroker()
-    stroker.set(outline_width*50, ft.FT_STROKER_LINECAP_ROUND, ft.FT_STROKER_LINEJOIN_ROUND, 0)
+    l = group.layers[0]
+    width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit
+    coef = 70
+    stroker.set(width*coef, linecap, join, limit)
+    if not l.outline and width>100 :  stroker.set( (width-100)*coef, linecap, join, limit)
+    if not l.outline and width<=100 : stroker.set( (100-width)*coef, linecap, join, limit)
     stroker.parse_outline(outline, False)
 
     n_points, n_contours = stroker.get_counts()
     with utils.new_outline(n_points, n_contours) as stroked_outline:
-        stroker.export(stroked_outline)
-        stroked_outline.decompose(pen, move_to=move_to, line_to=line_to, conic_to=conic_to, cubic_to=cubic_to, shift=0,delta=0)
-    pen.closePath()
+        if l.outline     : stroker.export(stroked_outline)
+        if not l.outline and l.outline_width>100: stroker.export_border(outline.get_outside_border(),stroked_outline)
+        if not l.outline and l.outline_width<=100: stroker.export_border(outline.get_inside_border(),stroked_outline)
+        pen.moveTo( (0,0) )
+        stroked_outline.decompose(pen, move_to=move_to_reverse,line_to=line_to,conic_to=conic_to,cubic_to=cubic_to,shift=0,delta=0)
+        pen.closePath()
 
-    img = pen.image(width=width,height=height,transform=Offset(imgMargin,font['OS/2'].usWinDescent+2*imgMargin))
+    height = in_font['OS/2'].usWinAscent + in_font['OS/2'].usWinDescent + 2*imgMargin
+    width = gs[g].width + 2*imgMargin
+    img = pen.image(width=width,height=height,transform=Offset(imgMargin,in_font['OS/2'].usWinDescent+2*imgMargin))
     return ImageOps.invert(img.getchannel('A'))
 
+def move_to_reverse(a, ctx):
+    ctx.moveTo( pt(a) )
+    ctx.closePath()
+    ctx.moveTo( pt(a) )
+    ctx.lineTo( pt(a) )
 def move_to(a, ctx):
     ctx.lineTo( pt(a) )
     ctx.closePath()
     ctx.moveTo( pt(a) )
-def line_to(a, ctx):
-    ctx.lineTo( pt(a) )
-def conic_to(a, b, ctx):
-    ctx.curveTo( pt(a), pt(b), pt(b))
-def cubic_to(a, b, c, ctx):
-    ctx.curveTo(  pt(a), pt(b), pt(c) )
+def line_to(a, ctx):        ctx.lineTo( pt(a) )
+def conic_to(a, b, ctx):    ctx.curveTo( pt(a), pt(b), pt(b))
+def cubic_to(a, b, c, ctx): ctx.curveTo(  pt(a), pt(b), pt(c) )
 def pt(a):
     coef = 64
-    return (a.x/coef, a.y/coef)
+    return (a.x//coef, a.y//coef)  # not sure about // : int or float
 
 def glyph_to_font_outline(g, in_font, font, group):
     l = group.layers[0]
@@ -82,11 +81,10 @@ def glyph_to_font_outline(g, in_font, font, group):
     tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
 
     stroker = ft.Stroker()
-    stroker.set( l.outline_width*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
-    if not l.outline and l.outline_width>100 :
-        stroker.set( (l.outline_width-100)*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
-    if not l.outline and l.outline_width<=100 :
-        stroker.set( (100-l.outline_width)*20, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit)
+    width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit
+    stroker.set(width*20, linecap, join, limit)
+    if not l.outline and width>100 :  stroker.set( (width-100)*20, linecap, join, limit)
+    if not l.outline and width<=100 : stroker.set( (100-width)*20, linecap, join, limit)
     stroker.parse_outline(outline, False)
 
     n_points, n_contours = stroker.get_counts()
@@ -114,8 +112,12 @@ def vectorization(img):
     return path
 
 def path_to_font(path, glyph, font):
-    if 'glyf' in font : pen = TTGlyphPen( font.getGlyphSet() )
-    if 'CFF ' in font : pen = T2CharStringPen(600, font.getGlyphSet())
+    if not letter_spacing == 0 :
+        font['hmtx'][glyph] = ( int(font['hmtx'][glyph][0] + letter_spacing) , font['hmtx'][glyph][1])
+    gs = font.getGlyphSet()
+
+    if 'glyf' in font : pen = TTGlyphPen( gs )
+    if 'CFF ' in font : pen = T2CharStringPen(600, gs)
     tpen = TransformPen(pen, (1, 0, 0, -1, -imgMargin, font['OS/2'].usWinAscent))
 
     for curve in path:
@@ -132,11 +134,67 @@ def path_to_font(path, glyph, font):
                 # pen.qCurveTo((segment.c2.x,segment.c2.y),(x,y),  (x,y))
                 tpen.curveTo( (segment.c1.x,segment.c1.y), (segment.c2.x,segment.c2.y), (x, y))
             # last = (segment.end_point.x, segment.end_point.y)
-
         pen.closePath()
+    # pprint.pprint(vars(gs[glyph]))
     if 'glyf' in font : font['glyf'][glyph] = pen.glyph(dropImpliedOnCurves=True)
-    if 'CFF ' in font : font['CFF '].cff.topDictIndex[0].CharStrings[glyph] = pen.getCharString()
+    if 'CFF ' in font :
+        cs = pen.getCharString()
+        cs.compile()
+        font['CFF '].cff.topDictIndex[0].CharStrings[glyph].bytecode = cs.bytecode
+# -------------------------------------------------------------------------------------------
+def text_to_img_PIL(txt):
+    img = Image.new("RGB", (1000, 1000))
+    d = ImageDraw.Draw(img)
+    new_font = ImageFont.truetype(utils.path("out.otf"), size=148) # layout_engine=ImageFont.Layout.BASIC
+    d.text((0, 200), txt, font=new_font, fill="#fff")
+    return img
 
+def text_to_img_HB(text, ttfont, hbfont):
+    # takes metrics from inputed font with HB  & draw from TTFont object
+    # base from https://fonttools.readthedocs.io/en/latest/pens/freetypePen.html
+    import uharfbuzz as hb
+    # en1, en2, ar, ja = 'VA Typesetting', 'Jeff', 'صف الحروف', 'たいぷせっと'
+    # (ar,  'files/1.ttf',     'rtl', 1374, -738, None, None, False, {"kern": True, "liga": True}),
+    # (ja,  'files/1.otf',     'ltr', 880,  -120, 500,  -500, False, {"palt": True, "kern": True}),
+    # (ja,  'files/1.otf',     'ttb', 880,  -120, 500,  -500, False, {"vert": True, "vpal": True, "vkrn": True})
+    direction, typo_ascender, typo_descender, vhea_ascender, vhea_descender, contain, features = 'ltr', ttfont['OS/2'].usWinAscent, ttfont['OS/2'].usWinDescent, ttfont["hhea"].ascent, ttfont["hhea"].descent, True,  {"kern": True, "liga": True}
+
+    buf = hb.Buffer()
+    buf.direction = direction
+    buf.add_str(text)
+    buf.guess_segment_properties()
+    hb.shape(hbfont, buf, features)
+
+    x, y = 0, 0
+    pen = FreeTypePen( ttfont.getGlyphSet() )
+    for info, pos in zip(buf.glyph_infos, buf.glyph_positions):
+        gid = info.codepoint
+        transformed = TransformPen(pen, (1,0,0,1, x+pos.x_offset, y+pos.y_offset ))
+        ttfont.getGlyphSet()[ hbfont.glyph_to_string(gid) ].draw( transformed )
+        x += pos.x_advance + letter_spacing
+        y += pos.y_advance
+
+    offset, width, height = None, None, None
+    if direction in ('ltr', 'rtl'):
+        offset = (0, -typo_descender)
+        width  = x
+        height = typo_ascender - typo_descender
+    else:
+        offset = (-vhea_descender, -y)
+        width  = vhea_ascender - vhea_descender
+        height = -y
+
+    img = pen.image(width=width, height=height, transform=Offset(*offset), contain=contain)
+    img = ImageOps.invert(img.getchannel('A'))
+    background = Image.new('L', (1500, 1500), (240))
+    img.thumbnail((background.size), Image.Resampling.LANCZOS)
+    img_w, img_h = img.size
+    bg_w, bg_h = background.size
+    background.paste(img, (0, bg_h//2) )
+
+    return background
+
+# -------------------------------------------------------------------------------------------
 def operator_img(img, img2, op):
     if op==0 : img = ImageChops.darker( img, img2 )
     elif op==1 : img = ImageChops.add( ImageOps.invert(img), img2 )
@@ -176,10 +234,3 @@ def draw_points(path, img): # draw visual beziers with PIL
             ellipse(7,curve.start_point.x,curve.start_point.y, "white", draw)
         del draw
     return img
-
-def ellipse(size,x,y, fill, draw):
-    s = int(size/2)
-    draw.ellipse((x-s,y-s,x+s,y+s), fill )
-def rectangle(size,x,y, fill, draw):
-    s = int(size/2)
-    draw.rectangle((x-s,y-s,x+s,y+s), fill )

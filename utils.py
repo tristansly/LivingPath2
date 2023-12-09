@@ -8,9 +8,11 @@ import freetype as ft
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
+    from plugins import particles
     from plugins import blur
     from plugins import dilate_erode
     from plugins import pixel
+    from plugins import reaction_diffusion
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
             plugins.append( eval(i.split('.')[1]) )
@@ -22,7 +24,7 @@ def load_plugins():
     #         plugins.append( importlib.import_module("plugins." + name) )
     #         names.append( name )
     return plugins, names
-
+############## DATA ######################################################
 def path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -53,17 +55,35 @@ def prev_item(list, glyph):
         if list[i] == glyph :
             return list[i-1 % len(list)]
 
+            ############## MATHS ######################################################
+
+def mapping(x,a,b,A,B):
+    return  ((x-a)/(b-a)) * (B-A) + A
+
+def mapping(x,A,B): # si 0<x<1
+    return  x * (B-A) + A
 
 
-class Singleton(type):
-    def __init__(self, name, bases, mmbs):
-        super(Singleton, self).__init__(name, bases, mmbs)
-        self._instance = super(Singleton, self).__call__()
+def constrain(val, min_val, max_val):
+    return min(max_val, max(min_val, val))
 
-    def __call__(self, *args, **kw):
-        return self._instance
+def ellipse(size,x,y, fill, draw):
+    s = int(size/2)
+    draw.ellipse((x-s,y-s,x+s,y+s), fill )
+def rectangle(size,x,y, fill, draw):
+    s = int(size/2)
+    draw.rectangle((x-s,y-s,x+s,y+s), fill )
 
+    ############## DRAW PIL ######################################################
 
+def ellipse(size,x,y, fill, draw):
+    s = int(size/2)
+    draw.ellipse((x-s,y-s,x+s,y+s), fill )
+def rectangle(size,x,y, fill, draw):
+    s = int(size/2)
+    draw.rectangle((x-s,y-s,x+s,y+s), fill )
+
+    ############## fontTools outlines ######################################################
 
 @contextlib.contextmanager
 def new_outline(n_points, n_contours):
