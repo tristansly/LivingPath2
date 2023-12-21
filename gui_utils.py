@@ -12,7 +12,7 @@ class Slider(ttk.Frame):
         s.name = name.replace(' ', '_')
         s.flag = flag
         s.layer = font_utils if layer == None else layer
-        s.set_attach_val(ini)
+        if not hasattr(s.layer, s.name) : s.set_attach_val(ini) # set ini only at layer init
 
         s.val = ttk.Label(s, text = s.format % s.get_attach_val()) # display fix slider number
         s.val.grid(column=1, row=1, sticky=tk.W, padx=5 )
@@ -39,7 +39,7 @@ class Slider(ttk.Frame):
             gui.show_glyph()
 
     def set_attach_val(s, val=None ):
-        if val==None : val = s.get()
+        if val==None : val = s.get() # if not ini
         if s.format == "%d" : setattr(s.layer, s.name, int(val))
         if s.format != "%d" : setattr(s.layer, s.name, float(val))
     def get_attach_val(s):
@@ -53,7 +53,7 @@ class Checkbutton(ttk.Frame):
         s.name = name
         s.layer = font_utils if layer == None else layer
         s.var = tk.StringVar()
-        s.set_attach_val(ini)
+        if not hasattr(s.layer, s.name) : s.set_attach_val(ini) # set ini only at layer init
         s.var.set( s.get_attach_val() )
         s.check = ttk.Checkbutton( s, text=name.replace('_',' '), variable=s.var )
         s.check.configure(command = s.update)

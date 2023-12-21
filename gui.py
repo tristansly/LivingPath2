@@ -193,7 +193,7 @@ def setup_root(root):
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
     wm, hm = ws/10, hs/10
     root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
-    root.geometry('%dx%d+%d+%d' % (ws-550, hs-300, 0, 0)) #production
+    root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
     # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
     # if ws < 1500 : root.attributes("-fullscreen", True)
     # root['background'] = 'white' # for linux distro ?

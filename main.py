@@ -98,10 +98,10 @@ def modify_font(txt='qwertyuioplkjhgfdsazxcvbnmV', name='out.otf'):
     global font
     for key in font.getGlyphSet():
         # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
-        if key in list( set(txt) ):
-            img = get_current_img(key)
-            path = vectorization( img )
-            path_to_font(path, key, font)
+        # if key in list( set(txt) ):
+        img = get_current_img(key)
+        path = vectorization( img )
+        path_to_font(path, key, font)
         # else:
         #     print(key, end=' ')  # check uncomputed glyph
     # if font['glyf'] : font['maxp'].recalc(font)

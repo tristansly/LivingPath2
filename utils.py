@@ -73,7 +73,12 @@ def ellipse(size,x,y, fill, draw):
 def rectangle(size,x,y, fill, draw):
     s = int(size/2)
     draw.rectangle((x-s,y-s,x+s,y+s), fill )
-
+def is_over(pos, z):
+    if pos[0] > z[0] and pos[0] < z[2]:
+        if pos[1] > z[1] and pos[1] < z[3]:
+            return True
+    return False
+    
     ############## DRAW PIL ######################################################
 
 def ellipse(size,x,y, fill, draw):
