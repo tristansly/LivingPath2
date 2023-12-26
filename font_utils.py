@@ -1,6 +1,6 @@
-import freetype as ft
+import freetype as ft # pip install freetype-py
 import numpy as np
-import potracer # pip install potracer
+import potrace # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -107,7 +107,7 @@ def vectorization(img):
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
-    bmp = potracer.Bitmap(data) # Create a bitmap from the array
+    bmp = potrace.Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=potrace_curves, opticurve=potrace_simple, opttolerance=potrace_simplify, turdsize=potrace_min)
     return path
 
@@ -218,19 +218,19 @@ def draw_points(path, img): # draw visual beziers with PIL
                 if not segment.is_corner:
                     draw.line((segment.c1.x,segment.c1.y,last.x,last.y), bleu2, width=2)
                     draw.line((segment.c2.x,segment.c2.y,x,y), bleu2, width=2)
-                    ellipse(4,segment.c1.x,segment.c1.y, bleu2, draw)
-                    ellipse(4,segment.c2.x,segment.c2.y, bleu2, draw)
+                    utils.ellipse(4,segment.c1.x,segment.c1.y, bleu2, draw)
+                    utils.ellipse(4,segment.c2.x,segment.c2.y, bleu2, draw)
                 last = segment.end_point
 
         for curve in path: # then draw points
             for segment in curve:
                 x = segment.end_point.x
                 y = segment.end_point.y
-                ellipse( 7, x, y, bleu, draw)
+                utils.ellipse( 7, x, y, bleu, draw)
                 # rectangle(5, x, y, bleu, draw)
                 if segment.is_corner:
-                    rectangle(5,segment.c.x,segment.c.y, bleu, draw)
-            ellipse(11,curve.start_point.x,curve.start_point.y, bleu, draw)
-            ellipse(7,curve.start_point.x,curve.start_point.y, "white", draw)
+                    utils.rectangle(5,segment.c.x,segment.c.y, bleu, draw)
+            utils.ellipse(11,curve.start_point.x,curve.start_point.y, bleu, draw)
+            utils.ellipse(7,curve.start_point.x,curve.start_point.y, "white", draw)
         del draw
     return img

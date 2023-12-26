@@ -12,13 +12,13 @@ from pymunk import Vec2d
 import math
 from PIL import Image, ImageDraw
 
-
 class Layer(Plugin):
-    """Very simple example that does not depend on any third party library such
-    as pygame or pyglet like the other examples.
+    """ Attraction-repultion particles inside letter
     """
     def __init__(s):
         super(Layer, s).__init__()
+        s.space = pymunk.Space()
+        s.saved_space = s.space.copy()
 
     def gui(s, frame):
         gui.Slider(frame, max=100, min=1, ini= 20, layer=s, name='quantity').grid(column=0, row=0, sticky='W')
@@ -40,19 +40,16 @@ class Layer(Plugin):
         gui.Slider(frame, max=2, min=0, ini= 0, format='%0.2f', layer=s, name='d').grid(column=0, row=14, sticky='W')
         gui.Slider(frame, max=2, min=0, ini= 0, format='%0.2f', layer=s, name='e').grid(column=0, row=15, sticky='W')
 
-
     def run(s, img):
+        s.space = s.saved_space.copy()
         img_draw = Image.new(img.mode, img.size, 255)
-        s.space = pymunk.Space()
         draw = ImageDraw.Draw(img_draw)
 
-        s.space.gravity = (0.0, s.a)
+        # s.space.gravity = (0.0, s.a)
         s.space.collision_bias = s.b
         s.space.collision_slop = s.c*10
 
-        ## Balls
         balls = []
-
         w, h = img.size[0], img.size[1]
         q =  120-s.quantity
         for x in range(w//q):
@@ -71,23 +68,24 @@ class Layer(Plugin):
 
         s.generate_geometry(img, s.space, draw)
 
+        s.space.step(1)
 
-        ### Update physics
+        #  Update physics
         for x in range(s.time):
-            s.space.step(1)
+            s.space.step(0.01)
 
-            ### remove
-            balls_to_remove = []
-            for ball in balls:
-                if not utils.is_over(ball.body.position,(0,0,w-1,h-1)) or s.over and img.getpixel(ball.body.position) > 127 :
-                    balls_to_remove.append(ball)
-            for ball in balls_to_remove:
-                s.space.remove(ball, ball.body)
-                balls.remove(ball)
+            if x % 10 == 0 :  #  remove
+                balls_to_remove = []
+                for ball in balls:
+                    if not utils.is_over(ball.body.position,(0,0,w-1,h-1)) or s.over and img.getpixel(ball.body.position) > 127 :
+                        balls_to_remove.append(ball)
+                for ball in balls_to_remove:
+                    s.space.remove(ball, ball.body)
+                    balls.remove(ball)
 
         for ball in balls:
-                v = ball.body.position
-                utils.ellipse(s.size, v.x, v.y, 0, draw)
+            v = ball.body.position
+            utils.ellipse(s.size, v.x, v.y, 0, draw)
 
         del draw
         del s.space
@@ -114,9 +112,9 @@ class Layer(Plugin):
             for i in range(len(line) - 1):
                 p1 = line[i]
                 p2 = line[i+1]
-                shape = pymunk.Segment(space.static_body, p1, p2, s.outline_width)
-                shape.friction = s.d
-                shape.elasticity = s.e
-                space.add(shape)
+                s.shape = pymunk.Segment(space.static_body, p1, p2, s.outline_width)
+                s.shape.friction = s.d *10
+                s.shape.elasticity = s.e *10
+                space.add(s.shape)
             if s.outline : draw.line( line, fill=100, width=s.outline_width, joint="curve" )
             if s.outline : utils.ellipse(s.outline_width, line[0][0], line[0][1], 100, draw) # close draw.line
