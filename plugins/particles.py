@@ -13,12 +13,12 @@ import math
 from PIL import Image, ImageDraw
 
 class Layer(Plugin):
-    """ Attraction-repultion particles inside letter
+    """Very simple example that does not depend on any third party library such
+    as pygame or pyglet like the other examples.
     """
     def __init__(s):
         super(Layer, s).__init__()
-        s.space = pymunk.Space()
-        s.saved_space = s.space.copy()
+        s.ini_space = pymunk.Space()
 
     def gui(s, frame):
         gui.Slider(frame, max=100, min=1, ini= 20, layer=s, name='quantity').grid(column=0, row=0, sticky='W')
@@ -41,7 +41,7 @@ class Layer(Plugin):
         gui.Slider(frame, max=2, min=0, ini= 0, format='%0.2f', layer=s, name='e').grid(column=0, row=15, sticky='W')
 
     def run(s, img):
-        s.space = s.saved_space.copy()
+        s.space = s.ini_space.copy()
         img_draw = Image.new(img.mode, img.size, 255)
         draw = ImageDraw.Draw(img_draw)
 
@@ -67,8 +67,6 @@ class Layer(Plugin):
                 balls.append(shape)
 
         s.generate_geometry(img, s.space, draw)
-
-        s.space.step(1)
 
         #  Update physics
         for x in range(s.time):
@@ -105,7 +103,6 @@ class Layer(Plugin):
             pymunk.BB(0, 0, img.size[0]-1, img.size[1]-1), s.x, s.x, s.y, sample_func
         )
 
-
         for polyline in line_set:
             line = pymunk.autogeometry.simplify_curves(polyline, s.z/10)
 
@@ -113,8 +110,8 @@ class Layer(Plugin):
                 p1 = line[i]
                 p2 = line[i+1]
                 s.shape = pymunk.Segment(space.static_body, p1, p2, s.outline_width)
-                s.shape.friction = s.d *10
-                s.shape.elasticity = s.e *10
+                s.shape.friction = s.d
+                s.shape.elasticity = s.e
                 space.add(s.shape)
             if s.outline : draw.line( line, fill=100, width=s.outline_width, joint="curve" )
             if s.outline : utils.ellipse(s.outline_width, line[0][0], line[0][1], 100, draw) # close draw.line
