@@ -13,8 +13,7 @@ import math
 from PIL import Image, ImageDraw
 
 class Layer(Plugin):
-    """Very simple example that does not depend on any third party library such
-    as pygame or pyglet like the other examples.
+    """attraction repultion particles field
     """
     def __init__(s):
         super(Layer, s).__init__()
@@ -42,7 +41,7 @@ class Layer(Plugin):
 
     def run(s, img):
         s.space = s.ini_space.copy()
-        img_draw = Image.new(img.mode, img.size, 255)
+        img_draw = Image.new('L', img.size, 255)
         draw = ImageDraw.Draw(img_draw)
 
         # s.space.gravity = (0.0, s.a)
@@ -70,7 +69,7 @@ class Layer(Plugin):
 
         #  Update physics
         for x in range(s.time):
-            s.space.step(0.01)
+            s.space.step(0.1)
 
             if x % 10 == 0 :  #  remove
                 balls_to_remove = []

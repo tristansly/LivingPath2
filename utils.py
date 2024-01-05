@@ -8,7 +8,7 @@ import freetype as ft
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
-    from plugins import particles
+    from plugins import particles2
     from plugins import blur
     from plugins import dilate_erode
     from plugins import pixel
@@ -78,7 +78,7 @@ def is_over(pos, z):
         if pos[1] > z[1] and pos[1] < z[3]:
             return True
     return False
-    
+
     ############## DRAW PIL ######################################################
 
 def ellipse(size,x,y, fill, draw):
