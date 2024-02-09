@@ -95,7 +95,7 @@ def global_Interface(root):
     root.bind("<KeyRelease-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(0) )
 
     main.new_group()
-    main.new_layer(0) # test
+    main.new_layer(5) # test
 
 def focus_current_tab(e):
     e.widget.winfo_children()[e.widget.index(e.widget.select())].focus_set()

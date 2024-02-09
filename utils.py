@@ -13,6 +13,7 @@ def load_plugins():
     from plugins import dilate_erode
     from plugins import pixel
     from plugins import reaction_diffusion
+    from plugins import cahn_hilliard
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
             plugins.append( eval(i.split('.')[1]) )
