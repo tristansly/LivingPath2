@@ -102,6 +102,7 @@ def glyph_to_font_outline(g, in_font, font, group):
 def vectorization(img):
     # C++ binding : pypotrace - version mac (a tester) https://github.com/flupke/pypotrace
     # full python : potracer - https://github.com/tatarize/potrace
+    # Cython : pyAutoTrace - ça marche aussi - https://github.com/lemonyte/pyautotrace
     width = float(img.size[0])*potrace_size
     wpercent = float(width)/float(img.size[0])
     height = int( float(img.size[1]) * float(wpercent) )
@@ -109,7 +110,9 @@ def vectorization(img):
     data = np.asarray(img) #  PIL image to a numpy array
     bmp = potracer.Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=potrace_curves, opticurve=potrace_simple, opttolerance=potrace_simplify, turdsize=potrace_min)
-    return path
+
+    return resize_path( path, 1/potrace_size )
+
 
 def path_to_font(path, glyph, font):
     if not letter_spacing == 0 :
@@ -120,6 +123,7 @@ def path_to_font(path, glyph, font):
     if 'CFF ' in font : pen = T2CharStringPen(600, gs)
     tpen = TransformPen(pen, (1, 0, 0, -1, -imgMargin, font['OS/2'].usWinAscent))
 
+    pprint.pprint(path)
     for curve in path:
         # last = (curve.start_point.x, curve.start_point.y)
         tpen.moveTo(( curve.start_point.x , curve.start_point.y ))
@@ -231,6 +235,22 @@ def draw_points(path, img): # draw visual beziers with PIL
                 if segment.is_corner:
                     utils.rectangle(5,segment.c.x,segment.c.y, bleu, draw)
             utils.ellipse(11,curve.start_point.x,curve.start_point.y, bleu, draw)
-            utils.ellipse(7,curve.start_point.x,curve.start_point.y, "white", draw)
+            utils.ellipse(7, curve.start_point.x,curve.start_point.y, "white", draw)
         del draw
     return img
+
+# -------------------------------------------------------------------------------------------
+def resize_path( path, s ):
+    for curve in path:
+        for segment in curve:
+            segment.end_point.x *= s
+            segment.end_point.y *= s
+            if segment.is_corner:
+                segment.c.x *= s
+                segment.c.y *= s
+            else:
+                segment.c1.x *= s
+                segment.c1.y *= s
+                segment.c2.x *= s
+                segment.c2.y *= s
+    return path

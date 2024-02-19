@@ -14,6 +14,7 @@ def load_plugins():
     from plugins import pixel
     from plugins import reaction_diffusion
     from plugins import cahn_hilliard
+    from plugins import center_line
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
             plugins.append( eval(i.split('.')[1]) )

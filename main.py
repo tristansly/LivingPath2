@@ -31,7 +31,7 @@ def time(msg):
     last_time = perf_counter()
 
 def get_current_img( key ):
-    # time(None)
+    time(None)
     global img
     for g in groups:
         # glyph_to_font_outline(current_glyph, font, tmp_font_ttf, g) # .002 sec
@@ -42,14 +42,14 @@ def get_current_img( key ):
         if g.n > 0 :
             img = operator_img(img, prev_img, g.op)
         prev_img = img
-    # time("algo")
+    time("algo")
 
     if font_utils.display_points :
         path = vectorization( img )
-        # time("vecto")
+        time("vecto")
         path_to_font(path, key, tmp_font) # .002 sec
         img = draw_points(path, img)
-        # time("display vecto")
+        time("display vecto")
     return img
 
 def process_to_path(key,f):
@@ -93,19 +93,19 @@ def text_to_img(txt):
     time("txt to img")
     return img
 
-def modify_font(txt='qwertyuioplkjhgfdsazxcvbnmV', name='out.otf'):
+def modify_font(txt='qwertyuioplkjhgfdsazxcvbnmV', name='out.ttf'):
     # print("unprocessed glyphs :")
     global font
     for key in font.getGlyphSet():
         # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
-        # if key in list( set(txt) ):
-        img = get_current_img(key)
-        path = vectorization( img )
-        path_to_font(path, key, font)
+        if key in list( set(txt) ):
+            img = get_current_img(key)
+            path = vectorization( img )
+            path_to_font(path, key, font)
         # else:
         #     print(key, end=' ')  # check uncomputed glyph
     # if font['glyf'] : font['maxp'].recalc(font)
-    font.save( utils.path(name) )
+    font.save( utils.path('out\\'+name) )
     print("Modified font saved successfully!")
     font = copy.deepcopy(font_origin)
 

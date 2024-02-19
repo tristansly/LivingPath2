@@ -27,7 +27,7 @@ class Layer(Plugin):
 
         gui.Slider(frame,layer=s,min=0.5, max=2, ini=1.0, format='%0.3f',name='depth').grid(column=0,row=2,sticky='W')
         gui.Slider(frame,layer=s,min=0., max=0.5, ini=.1, format='%0.3f',name='noise').grid(column=0,row=3,sticky='W')
-        gui.Slider(frame, layer=s, min=1, max=3000, ini=100, name='growing time').grid(column=0, row=6, sticky='W')
+        gui.Slider(frame, layer=s, min=1, max=1000, ini=50, name='growing time').grid(column=0, row=6, sticky='W')
         # gui.Checkbutton(frame, layer=s, name='invert', ini=False).grid(column=0, row=7, sticky='W')
 
     def run(s, img):

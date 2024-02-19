@@ -50,7 +50,7 @@ class Slider(ttk.Frame):
 class Checkbutton(ttk.Frame):
     def __init__(s, context, layer=None, name='', ini=False):
         super(Checkbutton, s).__init__(context)
-        s.name = name
+        s.name = name.replace(' ', '_')
         s.layer = font_utils if layer == None else layer
         s.var = tk.StringVar()
         if not hasattr(s.layer, s.name) : s.set_attach_val(ini) # set ini only at layer init
