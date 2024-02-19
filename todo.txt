@@ -1,0 +1,26 @@
+TODO FONT GENERATOR
+
+!!! important !!!
+- lors d'un second export, l'app freez et crash
+
+
+- Show glyph name : getGlyphName(glyphID)
+- CFF Subroutinization Improvements at font export
+
+- Licence : CC BY NC SA (attribution, non-commercial, share alike licence)
+
+
+FINANCEMENTS :
+université de compiennes : https://www.utc.fr/recherche/les-projets-du-programme-dinvestissements-davenir/le-programme-des-investissements-davenir-pia/
+
+
+COMMUNICATION :
+- james sommerville ! typo enthusiate and designer https://www.instagram.com/jamessommerville - https://www.instagram.com/knownunknownco/
+- https://typo.social/explore
+- concurrent : https://www.burrowlab.com/ - >>> contacter Philipp Koller
+- write-whatever-you-like@christoph-knoth.com
+- http://be@collide24.org/
+- kundenservice@ebnermedia.de
+- ma@itsnicethat.com
+- https://www.gggaaallleeerrryyy.com/contact
+- submit@aiga.org
