@@ -1,12 +1,14 @@
 import freetype as ft # pip install freetype-py
 import numpy as np
-import potracer # pip install potracer
+import potrace # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.misc.transform import Offset
 from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops, ImageFont
+import beziers
+from beziers.path import BezierPath
 
 import utils
 import pprint
@@ -29,9 +31,17 @@ def glyph_to_img_outline(g, in_font, group):
     gs[g].draw(pen)
     outline = ft.Outline( pen.outline() )
     pen = FreeTypePen( gs )
+    l = group.layers[0]
+
+    # mathplotlib to manip path : check Path.circle, Path.to_polygons
+    path = beziers.path.BezierPath.fromFonttoolsGlyph(in_font, g)
+    points = []
+    for curve in path :
+        # for step in np.linspace(0,1,dist,endpoint=True) :
+        for step in np.arange(0.0, 1.0, l.dots_distance/200) :
+            points.append( curve.pointAtTime(step) )
 
     stroker = ft.Stroker()
-    l = group.layers[0]
     width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit
     coef = 70
     stroker.set(width*coef, linecap, join, limit)
@@ -51,6 +61,11 @@ def glyph_to_img_outline(g, in_font, group):
     height = in_font['OS/2'].usWinAscent + in_font['OS/2'].usWinDescent + 2*imgMargin
     width = gs[g].width + 2*imgMargin
     img = pen.image(width=width,height=height,transform=Offset(imgMargin,in_font['OS/2'].usWinDescent+2*imgMargin))
+
+    draw = ImageDraw.Draw(img)
+    # for p in points :
+    #     utils.ellipse(9, p.x, img.width-p.y, "red", draw)
+    del draw
     return ImageOps.invert(img.getchannel('A'))
 
 def move_to_reverse(a, ctx):
@@ -108,7 +123,7 @@ def vectorization(img):
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
-    bmp = potracer.Bitmap(data) # Create a bitmap from the array
+    bmp = potrace.Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=potrace_curves, opticurve=potrace_simple, opttolerance=potrace_simplify, turdsize=potrace_min)
 
     return resize_path( path, 1/potrace_size )

@@ -97,5 +97,7 @@ class Layer(Plugin):
         gui_utils.Slider(frame, layer=s, max=3, name='outline_join',            ini=2     ).grid(column=0, row=2, sticky='ew')
         gui_utils.Slider(frame, layer=s, max=300000, name='outline_join_limit', ini=160000).grid(column=0, row=3, sticky='ew')
 
+        gui_utils.Slider(frame, layer=s, max=200, name='dots_distance', ini=30).grid(column=0, row=3, sticky='ew')
+
     def run(s, img):
         return img

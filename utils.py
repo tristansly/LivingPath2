@@ -8,13 +8,13 @@ import freetype as ft
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
+    # from plugins import center_line
     from plugins import particles2
     from plugins import blur
     from plugins import dilate_erode
     from plugins import pixel
     from plugins import reaction_diffusion
     from plugins import cahn_hilliard
-    from plugins import center_line
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
             plugins.append( eval(i.split('.')[1]) )
