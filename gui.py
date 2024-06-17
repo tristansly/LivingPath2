@@ -241,6 +241,7 @@ def load_new_font(data):
         print("[CFF] ", end=" ")
 
     main.hbfont = hb.Font( hb.Face( hb.Blob.from_file_path(utils.path(data)) ) ) # load metric with uharfbuzz
+    
     gui_font_info['name'].set( "Loaded font :  " + str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( "  " + str(main.font['maxp'].numGlyphs) + " glyphs" )
     try:
