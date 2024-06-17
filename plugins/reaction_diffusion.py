@@ -32,7 +32,7 @@ class Layer(Plugin):
         # s.noise = np.reshape(s.noise/255, ( -1, noiseImg.width))
 
     def gui(s, frame):
-        gui.Slider(frame, max=0.5, min=0.01, ini= 0.1,format='%0.2f', layer=s, name='size').grid(column=1, row=0, sticky='W')
+        gui.Slider(frame, max=0.5, min=0.01, ini= 0.1,format='%0.2f', layer=s, name='size').grid(column=0, row=0, sticky='W')
         gui.Slider(frame, max=200, ini=90, layer=s, name='threshold').grid(column=0, row=1, sticky='W')
 
         gui.Slider(frame,layer=s,min=0.02, max=0.08, ini=0.052, format='%0.3f',name='f white').grid(column=0,row=2,sticky='W')

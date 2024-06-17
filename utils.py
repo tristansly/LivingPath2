@@ -3,18 +3,21 @@ import importlib
 import ctypes
 import contextlib
 import freetype as ft
+import numpy as np
+import uharfbuzz as hb
 
+margin = 200
 
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
-    # from plugins import center_line
+    from plugins import cahn_hilliard
+    from plugins import center_line
     from plugins import particles2
     from plugins import blur
     from plugins import dilate_erode
     from plugins import pixel
     from plugins import reaction_diffusion
-    from plugins import cahn_hilliard
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
             plugins.append( eval(i.split('.')[1]) )
@@ -37,17 +40,26 @@ def path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+def get_layer_attr(l):
+    data = []
+    for attr in dir(l) :
+        value = getattr(l, attr)
+        if not callable(value) and not (attr.startswith(("__","gui_")) or attr in ("group","frame","name","n") ) :
+            data.append( (attr, value) )
+    return data
+
 def next_key(dict, key):
     keyList = sorted(dict.keys(), key=len )
     for i,v in enumerate(keyList):
         if v == key:
             return keyList[ (i+1) % len(keyList) ]
-
+    return keyList[0]
 def prev_key(dict, key):
     keyList = sorted(dict.keys(), key=len )
     for i,v in enumerate(keyList):
         if v == key:
             return keyList[ (i-1) % len(keyList) ]
+    return keyList[0]
 def next_item(list, glyph):
     for i in range(len(list)) :
         if list[i] == glyph :
@@ -80,6 +92,45 @@ def is_over(pos, z):
         if pos[1] > z[1] and pos[1] < z[3]:
             return True
     return False
+def constrain(val, min_val, max_val):
+    if   val < min_val: val = min_val
+    elif val > max_val: val = max_val
+    return val
+
+def get_used_glyphs(txt, ttfont, hbfont):
+    charlist = np.unique(list(txt)).tolist()
+    glyphs = []
+    # for i in charlist : # without huarfbuzz
+    #     try:
+    #         glyphs.append(font.getBestCmap()[ord(i)] )
+    #     except Exception as e:
+    #         print("(utils.py) Char to glyph error : '"+i+"'")
+
+    features = {"kern": True, "liga": True}
+    buf = hb.Buffer()
+    buf.add_str(txt)
+    buf.guess_segment_properties()
+    hb.shape(hbfont, buf, features)
+
+    for info in buf.glyph_infos:
+        gid = info.codepoint
+        glyphs.append( ttfont.getGlyphName(gid) )
+
+    return np.unique(glyphs).tolist()
+
+
+def cutWords(txt):
+    n = 7 # char per words
+    words = txt.split(' ')
+    out = []
+    for w in words :
+        if len(w) > 14 :
+            list = [w[i:i+n] for i in range(0, len(w), n)]
+            out.extend(list)
+        else :
+            out.append( w + ' ' )
+    return out
+
 
     ############## DRAW PIL ######################################################
 

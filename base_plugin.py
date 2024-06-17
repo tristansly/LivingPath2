@@ -3,10 +3,11 @@ import gui
 import main
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from functools import partial
+import group
 
 from PIL import Image
 
-class Plugin():
+class Plugin(object):
     """Base plugin."""
 
     def __init__(s):
@@ -33,7 +34,7 @@ class Plugin():
         s.gui_del.config( command = partial(s.group.del_layer, s.n) )
         print("LAYER POS :", n, " ", s.name, end=' ' )
 
-    def change_order(s, group, layer):
+    def change_order(s, group, layer, refresh=True):
         print("DROP LAYER POS : ",s.group.n, s.n," -> ", group, layer )
         x = s.group.layers.pop( s.n )
         main.groups[group].layers.insert( layer, x )
@@ -43,7 +44,7 @@ class Plugin():
                 l.gui_position(i, g)
                 print("changeOrder : ",g.n, i )
             g.set_drag_zone()
-        gui.refresh()
+        if refresh : gui.refresh()
 
 
     def gui_img(img):
@@ -53,3 +54,15 @@ class Plugin():
 
     def gui(s, frame):
         None
+    def run(s, img):
+        print("plugin")
+        return img
+
+    def gost(s):
+        # print("mnamw", main.plugins[s.ref_plugin], type(s).__name__, s.ref_plugin)
+        if s.ref_plugin == -1 : b = object.__new__(group.Layer)
+        if s.ref_plugin != -1 : b = object.__new__(main.plugins[s.ref_plugin].Layer)
+        b.__dict__ = s.__dict__.copy()
+        b.gui_button = b.gui_drag = b.frame = b.gui_del = b.group =42
+
+        return b

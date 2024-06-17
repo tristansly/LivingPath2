@@ -22,14 +22,13 @@ class Layer(Plugin):
         # s.noise = np.reshape(s.noise/255, ( -1, noiseImg.width))
 
     def gui(s, frame):
-        gui.Slider(frame, max=0.5, min=0.01, ini= 0.1,format='%0.2f', layer=s, name='size').grid(column=1, row=0, sticky='W')
-        gui.Slider(frame, min=30, max=230, ini=127, layer=s, name='threshold').grid(column=0, row=1, sticky='W')
+        gui.Slider(frame, max=0.5, min=0.01, ini= 0.1,format='%0.2f', layer=s, name='size', slow=True).grid(column=0, row=0, sticky='ew')
+        gui.Slider(frame, min=30, max=230, ini=127, layer=s, name='threshold').grid(column=0, row=1, sticky='ew')
 
-        gui.Slider(frame,layer=s,min=0.5, max=2, ini=1.0, format='%0.3f',name='depth').grid(column=0,row=2,sticky='W')
-        gui.Slider(frame,layer=s,min=0., max=0.5, ini=.1, format='%0.3f',name='noise').grid(column=0,row=3,sticky='W')
-        gui.Slider(frame, layer=s, min=1, max=1000, ini=50, name='growing time').grid(column=0, row=6, sticky='W')
+        gui.Slider(frame,layer=s,min=0.5, max=2, ini=1.0, format='%0.3f',name='depth').grid(column=0,row=2,sticky='ew')
+        gui.Slider(frame,layer=s,min=0., max=0.5, ini=.1, format='%0.3f',name='noise').grid(column=0,row=3,sticky='ew')
+        gui.Slider(frame, layer=s, min=1, max=1000, ini=50, name='growing time', slow=True).grid(column=0, row=6, sticky='ew')
         # gui.Checkbutton(frame, layer=s, name='invert', ini=False).grid(column=0, row=7, sticky='W')
-
     def run(s, img):
         originSize = img.size
         img = img.resize( (int(img.width*s.size), int(img.height*s.size)), Image.NEAREST)
@@ -77,7 +76,7 @@ class Layer(Plugin):
             c_hat[:] = (c_hat-dt*K2*M*dfdc_hat)/(1+dt*M*kappa*K2**2) # updating in time
             c[i] = ifft2(c_hat).real # inverse fourier transform
 
-        print("R&D - Time Elapsed : " + str(time() - t) )
+        # print("R&D - Time Elapsed : " + str(time() - t) )
 
         img = np.clip( c[-1] * 255, 0, 255 )
         img = Image.fromarray(np.uint8(img))

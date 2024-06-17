@@ -3,13 +3,21 @@ import utils
 import font_utils
 import gui_utils as gu
 import gui_drag_drop
+import save_data
+import wiki
 from PIL import ImageTk, Image
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.ttGlyphSet import _TTGlyphGlyf
+from fontTools import unicodedata
 import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from tkinterdnd2 import DND_FILES
 from functools import partial
+import pickle
+import iso639
+import uharfbuzz as hb
+from hyperglot import checker
+import pprint
 
 def global_Interface(root):
     main.plugins, main.names = utils.load_plugins() # has to be loaded here
@@ -18,6 +26,7 @@ def global_Interface(root):
 
     global gui_zone
     global gui_para
+    global gui_glob
     global notebook
     frm_style = 'Card.TFrame'
     frm_style = ''
@@ -25,16 +34,18 @@ def global_Interface(root):
     ctn_para = ttk.Frame(root, style=frm_style)
     gui_para = ttk.Frame(ctn_para, style=frm_style)
     gui_glob = ttk.Frame(ctn_para, style=frm_style)
-    gui_info = ttk.Frame(root, style=frm_style)
-    notebook = ttk.Notebook(root)
+    gui_view = ttk.Frame(root, style=frm_style)
+    gui_foot = ttk.Frame(root, style=frm_style)
+    gui_info = ttk.Frame(gui_foot, style=frm_style)
 
-    ttk.Sizegrip(root).pack(side='bottom', anchor='se',  expand=False, padx=(0, 5), pady=(0, 5))
+    ttk.Sizegrip(gui_foot).pack(side='right', anchor='se',  expand=False, padx=(0, 5), pady=(0, 5))
+    gui_foot.pack(side='bottom', fill='x', expand=True,  anchor='s')
+    gui_info.pack(side='left', fill='x', expand=False,  anchor='s')
     gui_zone.pack(side='top', fill='x', expand=True)
     ctn_para.pack(side='left', fill='both', expand=False, padx=20, pady=20)
     gui_para.pack(side='top', fill='both', expand=False)
     gui_glob.pack(side='bottom', fill=None, expand=False,  anchor='sw')
-    gui_info.pack(side='right', fill=None, expand=False)
-    notebook.pack(side='left', fill='both', expand=True)
+    gui_view.pack(side='left', fill='both', expand=True, anchor='w')
 
     # gui_zone.grid(column=0, row=0, columnspan=3, sticky='swne')
     # gui_para.grid(column=0, row=1, columnspan=1, sticky='nw', padx=20, pady=20 )
@@ -42,20 +53,14 @@ def global_Interface(root):
     # gui_info.grid(column=3, row=0, sticky='swne')
     # notebook.grid(row=1, column=2, sticky='nw', rowspan=2, columnspan=1)
 
-    notebook.columnconfigure(0, weight=1)
-    notebook.rowconfigure(0, weight=1)
-
     gui_zone.bind_all("<Button-1>",gui_drag_drop.on_click)
 
+    gu.Slider(gui_glob, min=-300, max=300, name='letter_spacing', flag='eco', ini=0).pack(anchor='w')
+    gu.Checkbutton(gui_glob, name='display_points', ini=False, slow=True).pack(anchor='w', pady=(20,0))
     gu.Slider(gui_glob, max=1.34, name='potrace_curves', format='%0.2f', ini=0.90).pack(anchor='w')
     gu.Slider(gui_glob, max=1.5, name='potrace_simplify', format='%0.2f', ini=0.45).pack(anchor='w')
     gu.Slider(gui_glob, max=500, name='potrace_min' , ini=2).pack(anchor='w')
     gu.Slider(gui_glob, max=2, name='potrace_size', format='%0.2f' , ini=1).pack(anchor='w')
-    gu.Slider(gui_glob, min=-300, max=300, name='letter_spacing', flag='eco', ini=0).pack(anchor='w')
-    gu.Checkbutton(gui_glob, name='potrace_simple', ini=True).pack(anchor='w')
-    global check_display_points
-    check_display_points = gu.Checkbutton(gui_glob, name='display_points', ini=False)
-    check_display_points.pack(anchor='w')
 
     # for widget in gui_glob.winfo_children(): widget.grid(padx=0, pady=0, sticky='w')
 
@@ -63,29 +68,35 @@ def global_Interface(root):
     gui_font_info = {'name':tk.StringVar(), 'numG':tk.StringVar() }
     ttk.Label(gui_info, textvariable=gui_font_info['name'] ).grid(column=0, row=0)
     ttk.Label(gui_info, textvariable=gui_font_info['numG'] ).grid(column=1, row=0)
-    ttk.Entry(gui_info, width=30).grid(column=0, row=3)
-    for widget in gui_info.winfo_children(): widget.grid(padx=5, pady=5)
+    for widget in gui_info.winfo_children(): widget.grid(padx=20, pady=(5,10))
 
+    refresh_button = ttk.Button(gui_view, text="Refresh font", width=1.2)
+    refresh_butto2 = ttk.Button(gui_view, text="↺", width=1.2)
+    refresh_button.pack(side="top", anchor="ne")
+    refresh_butto2.pack(side="right", anchor="ne")
+    refresh_button.config( command = refresh_txt )
+    refresh_butto2.config( command = new_wiki )
 
-    notebook.enable_traversal()
-    notebook.bind('<<NotebookTabChanged>>', focus_current_tab)
-    global tab_2
-    tab_1 = ttk.Frame(notebook)
-    for index in [0, 1]:
-        tab_1.columnconfigure(index=index, weight=1)
-        tab_1.rowconfigure(index=index, weight=1)
-    notebook.add(tab_1, text="Tab 1")
-    tab_2 = ttk.Frame(notebook)
-    notebook.add(tab_2, text="Tab 2")
+    global canvas
+    canvas = tk.Canvas(gui_view, borderwidth=0)
+    frame_txt = tk.Frame(canvas, background="#00ff00")
+    vsb = ttk.Scrollbar(root, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=vsb.set)
+    vsb.pack(side="right", fill="y")
+    canvas.pack(side="right", fill="both", expand=True)
+    canvas.create_window((0,0), window=frame_txt, anchor="nw")
+    frame_txt.bind("<Configure>", lambda event, canvas=canvas: onFrameConfigure(canvas))
+    set_mousewheel(frame_txt, lambda event: canvas.yview_scroll(int(-1*(event.delta/120)), "units") ) # not linux proof
 
     global img_letter
     img = ImageTk.PhotoImage(main.img)
-    img_letter = Label(tab_1, image=img, background='grey')
-    img_letter.pack(ipadx=20, ipady=20, fill='both', expand=True)
+    img_letter = Label(gui_view, image=img)
+    img_letter.pack(ipadx=0, ipady=0, side="left", fill='both', expand=False)
     global img_txt
-    img = ImageTk.PhotoImage(main.img)
-    img_txt = Label(tab_2, image=img, background='white')
-    img_txt.pack(ipadx=20, ipady=20,  side="left", expand=False)
+    img_txt = []
+    for i in range(4):
+        img_txt.append( Label(frame_txt, image=ImageTk.PhotoImage(main.img)) )
+        img_txt[i].pack(ipadx=0, ipady=0,  fill='x', expand=True)
 
     # general key control
     root.bind("<Escape>", lambda x: production_esc(root))
@@ -95,28 +106,100 @@ def global_Interface(root):
     root.bind("<KeyRelease-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(0) )
 
     main.new_group()
-    main.new_layer(1) # test
+    main.new_layer(0) # test
 
-def focus_current_tab(e):
-    e.widget.winfo_children()[e.widget.index(e.widget.select())].focus_set()
-    refresh()
+def set_mousewheel(widget, command): # Activate/deactivate mousewheel scrolling when cursor is over the widget
+    widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
+    widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
+
+def onFrameConfigure(canvas): # Reset the scroll region to encompass the inner frame
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+def new_wiki():
+    wiki.get_wiki()
+    refresh_txt()
 
 def production_esc(root):
     root.destroy()
 
 def refresh():
-    if notebook.index(notebook.select())==0 : img = main.get_current_img(main.current_glyph)
-    if notebook.index(notebook.select())==1 : img = main.text_to_img("VAwert")
+    img = main.get_current_img(main.current_glyph)
     m = 0 # font_utils.imgMargin
-    img = img.crop((m, m, img.width-m, img.height-m)).resize((int(img.width/2),int(img.height/2)),1)
-    refresh_img(img_txt, img)
+    img = img.crop((m, m, img.width-m, img.height-m)).resize((img.width//2,img.height//2),1)
     refresh_img(img_letter, img)
+
+def refresh_txt():
+    main.time(None)
+
+    used = main.text_to_font(wiki.title, main.tmp_font)
+    main.time("process title")
+    refresh_img(img_txt[0], text_titre(wiki.title, canvas.winfo_width(), 150))
+    main.time("display title")
+
+    used += main.text_to_font(wiki.start, main.tmp_font, used_glyphs=used )
+    refresh_img(img_txt[1], text_block(wiki.start, 85, canvas.winfo_width() ))
+
+    main.text_to_font(wiki.sum, main.tmp_font, used_glyphs=used )
+    refresh_img(img_txt[2], text_block(wiki.sum, 45, canvas.winfo_width() ))
+    refresh_img(img_txt[3], text_block_double(wiki.sum, 45, canvas.winfo_width() ))
+
+    main.time("all texts")
 
 def refresh_img(label, img):
     img = ImageTk.PhotoImage(img)
     label.configure( image = img )
     label.image = img
+    label.update()
 
+def text_line(txt, w, h, dir='rl'):
+    img = main.text_to_img_HB(txt, main.tmp_font, main.hbfont)
+    img.thumbnail((w,h), Image.Resampling.LANCZOS)
+    return img
+
+def text_titre(txt, w, h, dir='rl'):
+    bg = Image.new('L', (w, 3000), (255))
+    stack, y = '', 0
+    for word in utils.cutWords(txt):
+        if len(stack) < 7 :
+            stack += word
+        else:
+            bg.paste( text_line(stack,w*2,h,dir='rl'), (0,y) )
+            y +=h
+            stack = word
+    if stack != '' : bg.paste( text_line(stack,w*2,h,dir='rl'), (0,y) )
+
+    bg = bg.crop((0, 0, w, y+h ))
+    return bg
+
+def text_block(txt, txt_size, w, dir='rl' ):
+    bg = Image.new('L', (w+500, 2000), (255))
+    i, y, x, max, lh = 0, 40, 0, 0, 0
+    for word in utils.cutWords(txt) :
+        img = main.text_to_img_HB(word, main.tmp_font, main.hbfont)
+        img.thumbnail((3000, txt_size), Image.Resampling.LANCZOS)
+        lh = img.height
+        if x+img.width > bg.width :
+            y += lh # interlignage
+            if max < x : max = x # line width max
+            x = 0
+            if y > bg.height-lh : break
+        bg.paste(img, (x, y) )
+        x += img.width
+    bg = bg.crop((0, 0, max, y+lh ))
+    bg.thumbnail((w, 2000), Image.Resampling.LANCZOS)
+    return bg
+
+def text_block_double(txt, txt_size, w, dir='rl'):
+    words = txt.split(' ')
+    txt1 = ' '.join( words[0:len(words)//2] )
+    txt2 = ' '.join( words[len(words)//2:] )
+    bg = Image.new('L', (w, 3000), (255))
+    img = text_block(txt1, txt_size, w//2-20, dir='rl' )
+    im2 = text_block(txt2, txt_size, w//2-20, dir='rl' )
+    bg.paste(img, (0,0) )
+    bg.paste(im2, (img.width+40,0) )
+    bg = bg.crop((0, 0, w, max(img.height,im2.height) ))
+    return bg
 
 def show_glyph(flag=''):
     glyph_set = main.font.getGlyphSet()
@@ -131,6 +214,7 @@ def show_glyph(flag=''):
         # print('Table : glyf - has contour : ', g.numberOfContours)
         if g.isComposite():
             print(main.current_glyph, 'is composite')
+            show_glyph('next' if flag=='' else flag)
         elif g.numberOfContours > 0:
             refresh()
         else :
@@ -144,7 +228,6 @@ def show_glyph(flag=''):
 
 def drop(root,e):
     load_new_font(e.data)
-    refresh()
 def load_new_font(data):
     if data[0] == '{': data = data[1:-1]
     main.font = TTFont( utils.path(data), recalcBBoxes=False ) # recalcBBoxes=False
@@ -157,37 +240,70 @@ def load_new_font(data):
     else :
         print("[CFF] ", end=" ")
 
-    import uharfbuzz as hb
     main.hbfont = hb.Font( hb.Face( hb.Blob.from_file_path(utils.path(data)) ) ) # load metric with uharfbuzz
-    gui_font_info['name'].set( str(main.font['name'].getName(1, 3, 1)) )
-    gui_font_info['numG'].set( str(main.font['maxp'].numGlyphs) )
+    gui_font_info['name'].set( "Loaded font :  " + str(main.font['name'].getName(1, 3, 1)) )
+    gui_font_info['numG'].set( "  " + str(main.font['maxp'].numGlyphs) + " glyphs" )
+    try:
+        refresh()
+    except: # if droped font has no main.current_glyph
+        show_glyph('next')
+    # refresh_txt()
     print("NEW FONT LOADED")
+    # check = checker.FontChecker(utils.path(data))
+    # typo = check.get_supported_languages()
+    # for k,v in typo.items() : print("1 typo", len(v), k)
 
-#----------------------------------------------------------------------------------
+    checkGlyph = checker.CharsetChecker( main.font.getGlyphSet().keys() )
+    typo = checkGlyph.get_supported_languages()
+    for k,v in typo.items() : print("2 typo", len(v), k)
+
+    combo = []
+    wikikeys = []
+    for k in wiki.langs :
+        try:
+            wikikeys.append( (k, iso639.Language.match(k).part3) )
+        except Exception as e: pass
+
+    for wikikey in wikikeys :
+        for val in typo.values():
+            for k,v in val.items():
+                    if wikikey[1] == str(k) :
+                        combo.append( (wikikey[0], v['name'], v['speakers'] ) )
+    combo = sorted(combo, key=lambda k:k[2], reverse=True ) # sort by lang speakers
+    print("wiki",len(wiki.langs))
+    print("combo",len(combo))
+    menu_items['Lang'].delete(0, "end") # populate menu/language
+    for lang in combo :
+        menu_items['Lang'].add_command( label=lang[1], command=partial(wiki.set_wiki_lang, lang[0]) )
 
 #----------------------------------------------------------------------------------
 def setup_menubar(root):
     menubar = Menu(root)
     root.config(menu=menubar)
-    menu_items = dict.fromkeys( [ 'File', 'Help', 'New layer' ] )
+    global menu_items
+    menu_items = dict.fromkeys( [ 'File', 'Help', 'New layer', 'New group', 'Lang' ] )
     for key, val in menu_items.items():
         menu_items[key] = Menu(menubar)
         menubar.add_cascade( label=key, menu=menu_items[key] )
 
-    menubar.add_command( label='New group', command=main.new_group )
-
     menu_items['File'].add_command(label='New')
-    menu_items['File'].add_command(label='Open...')
-    menu_items['File'].add_command(label='Export', command=main.modify_font )
+    menu_items['File'].add_command(label='Save project', command=save_data.dump)
+    menu_items['File'].add_command(label='Open project', command=save_data.load )
+    menu_items['File'].add_command(label='Export font', command=main.modify_font )
     menu_items['File'].add_separator()
     menu_items['File'].add_command( label='Exit', command=root.destroy )
     menu_items['Help'].add_command(label='Welcome')
     menu_items['Help'].add_command(label='About...')
+    menu_items['New layer'].add_command( label='Duplicate layer', command=partial(main.duplicate_layer) )
+    menu_items['New layer'].add_separator()
     for i in range(len(main.plugins)) :
         menu_items['New layer'].add_command( label=main.names[i], command=partial(main.new_layer,i) )
-    menu_items['New layer'].add_separator()
-
+    menu_items['New group'].add_command( label='Duplicate group', command=partial(main.duplicate_group) )
+    menu_items['New group'].add_separator()
+    menu_items['New group'].add_command( label='New group', command=main.new_group )
 #----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+
 def setup_root(root):
     root.title('Alt-Font')
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
@@ -218,6 +334,12 @@ def setup_root(root):
     # layout on the root window
     root.columnconfigure(0, weight=2) # ????????
     root.columnconfigure(1, weight=2)
+
+
+    with open(utils.path("files\lorem.txt")) as file:
+        global lorem_ipsum
+        lorem_ipsum = file.readlines()
+        lorem_ipsum = [item.rstrip() for item in lorem_ipsum] # delete line jump
 #----------------------------------------------------------------------------------
 
 
