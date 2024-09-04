@@ -18,20 +18,20 @@ class Plugin(object):
         s.frame = ttk.Frame(gui.gui_zone)
 
         s.gui_button = ttk.Checkbutton(s.frame, text=s.name.replace('_', ' '), style='Toggle.TButton')
-        s.gui_button.grid( column=1, row=0, padx=2, pady=2 )
+        s.gui_button.grid( column=1, row=0, padx=2, pady=2, sticky="nsew" )
 
+        s.gui_drag = ttk.Button(s.frame, text="lll" if s.name!='outline' else "   ", width=1.2, style='Toggle.TButton')
+        s.gui_drag.grid( column=0, row=0, padx=2, pady=2, sticky="nsew" )
         s.gui_del = ttk.Button(s.frame, text="X", width=1.2, style='Toggle.TButton')
         s.gui_del.grid( column=2, row=0, padx=2, pady=2 )
-
-        s.gui_drag = ttk.Button(s.frame, text="lll", width=1.2, style='Toggle.TButton')
-        s.gui_drag.grid( column=0, row=0, padx=2, pady=2 )
 
     def gui_position(s, n, group=None ):
         if group : s.group = group
         s.n = n
         s.frame.grid( column=(s.group.n*2), row=n, padx=15, pady=4 )
         s.gui_button.config( command = partial(main.select_layer, s) )
-        s.gui_del.config( command = partial(s.group.del_layer, s.n) )
+        if s.name!='outline' : s.gui_del.config( command = partial(s.group.del_layer, s.n) )
+        if s.name=='outline' : s.gui_del.config( command = partial(main.del_group, s.group.n) )
         print("LAYER POS :", n, " ", s.name, end=' ' )
 
     def change_order(s, group, layer, refresh=True):

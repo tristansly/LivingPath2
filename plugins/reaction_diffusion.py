@@ -67,8 +67,8 @@ class Layer(Plugin):
         fk = np.ones( (w,h,2) )
         for x in range (w):
             for y in range (h):
-                fk[x,y,0] = utils.mapping(img[x,y], fkbw[0], fkbw[1] )
-                fk[x,y,1] = utils.mapping(img[x,y], fkbw[2], fkbw[3] )
+                fk[x,y,0] = utils.mapping(img[x,y], 0,1, fkbw[0],fkbw[1] )
+                fk[x,y,1] = utils.mapping(img[x,y], 0,1, fkbw[2],fkbw[3] )
 
         for i in range (s.growing_time):
             U, V, nextImgA, nextImgB = draw( U, V, nextImgA, nextImgB, fk ,w,h )

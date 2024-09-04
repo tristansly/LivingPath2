@@ -10,7 +10,7 @@ class Layer(Plugin):
 
     def gui(s, frame):
         gui.Slider(frame, max=200, ini=100, layer=s, name='contour_val').grid(column=1, row=1, sticky='W')
-        gui.Slider(frame, max=20, ini=5, layer=s, name='kernel_size').grid(column=1, row=2, sticky='W')
+        gui.Slider(frame, min=2, max=20, ini=5, layer=s, name='kernel_size').grid(column=1, row=2, sticky='W')
 
     def run(s, img):
 

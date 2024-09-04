@@ -2,6 +2,7 @@ import utils, wiki
 from font_utils import *
 import path_utils
 import gui
+import gui_utils
 from group import Group
 from base_plugin import Plugin
 
@@ -27,7 +28,7 @@ img = PIL.Image.new("L", (200, 200)) # ini img
 from time import perf_counter
 def time(msg):
     global last_time
-    if msg : print(' | ', str(perf_counter()-last_time).replace('0','-')[0:5],msg,end='' )
+    if msg : print( msg,': ',str(perf_counter()-last_time).replace('0','-')[0:5], end=' - ' )
     if not msg : print("\nTIMER : ",end='')
     last_time = perf_counter()
 
@@ -48,6 +49,8 @@ def get_current_img( key ):
         path_to_font(path, key, tmp_font) # .002 sec
         img = draw_points(path, img)
         # time("display vecto")
+    if params.display_rules :
+        img = draw_rules(img, key, font )
     return img
 
 def process_to_path(args):
@@ -63,37 +66,39 @@ def process_to_path(args):
 
 
 import multiprocessing as multi
-def text_to_font(txt, out_font, used_glyphs=[], char_to_glyph=True):
+def text_to_font(txt, out_font, char_to_glyph=True):
     if char_to_glyph : # remove glyphs allready computed
         txt = utils.get_used_glyphs(txt, font, hbfont)
-        used_glyphs.append('space')
-        for i in used_glyphs:
+        gui_utils.used_glyphs.append('space')
+        for i in gui_utils.used_glyphs:
             txt2 = [j for j in txt if j != i]
             txt = txt2
 
-    # time(None) # without multi
-    # for key in txt:
-    #     path_to_font(vectorization(get_current_img(key)),key, out_font)
-    # time("End without multiprocess")
+    time(None) # without multi
+    for key in txt:
+        path_to_font(vectorization(get_current_img(key)),key, out_font)
+    time("End without multiprocess")
 
-    time(None) # pool
-    gost_groups = [g.gost() for g in groups]
-    args = [(key, params, gost_groups, font) for key in txt]
-    with multi.Pool( utils.constrain(len(txt),2,multi.cpu_count()-1) ) as p:
-        result = p.map(process_to_path, args, chunksize=10)
-        p.terminate()
-    for r in result:
-        path_to_font(r[0], r[1], out_font)
-    time(' with pool, nbr glyph : '+str(len(txt))+' process : '+str(utils.constrain(len(txt),2,multi.cpu_count()-1)))
+    # time(None) # pool
+    # gost_groups = [g.gost() for g in groups]
+    # args = [(key, params, gost_groups, font) for key in txt]
+    # with multi.Pool( utils.constrain(len(txt),2,multi.cpu_count()-1) ) as p:
+    #     result = p.map(process_to_path, args, chunksize=10)
+    #     p.terminate()
+    # for r in result:
+    #     path_to_font(r[0], r[1], out_font)
+    # time('Pool[ glyph: '+str(len(txt))+' process: '+str(utils.constrain(len(txt),2,multi.cpu_count()-1))+']')
 
-    return txt
+    gui_utils.used_glyphs += txt
 
-def modify_font(txt=list('qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM'), name='out.ttf'):
+def modify_font(txt=list('qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM'), name='livingPath', ext='.otf' ):
     txt.extend(["eacute","egrave"])
     # print("unprocessed glyphs :")
     global font
     # text_to_font(font.getGlyphSet(), font)
+
     text_to_font(txt, font, char_to_glyph=False)
+
     # for key in font.getGlyphSet():
     #     # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
         # if True: # key in list( set(txt) ):
@@ -101,12 +106,11 @@ def modify_font(txt=list('qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM')
         # else:
         #     print(key, end=' ')  # check uncomputed glyph
     # if font['glyf'] : font['maxp'].recalc(font)
-    name = 'livingPath test '+random(9999)
-    font_utils.rename_font(name)
-    font.save( utils.path(name + '.otf')  )
+
+    rename_font(font, name)
+    font.save( utils.path(name + ext)  )
     font = copy.deepcopy(font_origin)
     time("Font saved : name")
-    print()
 
 def select_layer( selected ):
     global layer
@@ -129,8 +133,10 @@ def new_group():
 
 def del_group(n, select_last=True):
     print('DELETE GROUP : ', n)
-    if groups[n].op_frame :   groups[n].op_frame.destroy()
-    if groups[n].drag_frame : groups[n].drag_frame.destroy()
+    g = groups[n]
+    for l in reversed(g.layers) : g.del_layer(l.n, False)
+    if g.op_frame :   g.op_frame.destroy()
+    if g.drag_frame : g.drag_frame.destroy()
     del groups[n]
     for i in range(len(groups)) : groups[i].position(i)
     if select_last :
@@ -157,12 +163,15 @@ def duplicate_group():
 
 
 def main():
-    root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
-    gui.global_Interface(root)
+    gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
+    gui.root.config(cursor="watch");
+    gui.global_Interface(gui.root)
+    wiki.get_wiki_langs()
     wiki.set_wiki_lang('fr')
     gui.load_new_font(utils.path("files/1.otf"))
+    gui.root.config(cursor="")
 
-    root.mainloop()
+    gui.root.mainloop()
 
 
 if __name__ == "__main__":

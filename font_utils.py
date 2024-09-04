@@ -57,7 +57,7 @@ def glyph_to_img_outline(glyph, in_font, group):
     # poly = [(p.x,img.width-p.y) for p in points]
     # draw.polygon(poly, fill ="white", outline ="blue")
     # del draw
-    return img
+    return img.convert('L')
 
 def move_to_reverse(a, ctx):
     ctx.moveTo( pt(a) )
@@ -190,8 +190,11 @@ def text_to_img_HB(text, ttfont, hbfont):
     buf = hb.Buffer()
     buf.add_str(text)
     # buf.direction = direction
-    buf.replacement_codepoint =ttfont.getGlyphID('space')
-    buf.not_found_glyph = ttfont.getGlyphID('space')
+    # buf.replacement_codepoint = ttfont.getGlyphID('space')
+    # buf.not_found_glyph = ttfont.getGlyphID('space')
+    if 'space' in ttfont.getReverseGlyphMap() :
+        buf.replacement_codepoint = hbfont.get_nominal_glyph(ord(" "))
+        buf.not_found_glyph = hbfont.get_nominal_glyph(ord(" "))
     buf.guess_segment_properties()
     # try:
     hb.shape(hbfont, buf, features)
@@ -244,8 +247,34 @@ def operator_img(img, img2, op):
     elif op==4 : img = ImageOps.invert( ImageChops.difference(img, img2) )
     return img
 
+def draw_rules(img, g, font): # draw visual beziers with PIL
+    img = img.convert('RGB')
+    draw = ImageDraw.Draw(img)
+    asc, des = font['OS/2'].usWinAscent, font['OS/2'].usWinDescent
+    cap, xheight = font['OS/2'].sCapHeight, font['OS/2'].sxHeight
+    m = utils.margin
+    width = font.getGlyphSet()[g].width
+    c = '#555' #(0, 127, 255)
+    lineLabel(draw, (0,asc, img.width,asc), c, 2, 'base line')
+    lineLabel(draw, (0,asc+des, img.width,asc+des), c, 2, 'descender')
+    lineLabel(draw, (0,cap-des-m, img.width,cap-des-m), c, 2, 'caps')
+    lineLabel(draw, (0,asc-xheight, img.width,asc-xheight), c, 2, 'xheight')
+
+    lineLabel(draw, (width+params.letter_spacing+m,0, width+params.letter_spacing+m,img.height), c, 2, str(width+params.letter_spacing), vert=img.height)
+
+    lineLabel(draw, (0,m, img.width,m), c, 2, 'ascender')
+    lineLabel(draw, (m,0, m,img.height), c, 2, '0', vert=img.height)
+
+    return img
+
+arial = ImageFont.truetype("arial", 20)
+def lineLabel(draw, coord, coul, width=2, txt='', vert=None):
+    draw.line(coord, coul, width)
+    pos = (coord[0],coord[1]+4) if not vert else (coord[0]+8,vert-20)
+    draw.text(pos, txt, font=arial, fill='#222')
+
 def draw_points(path, img): # draw visual beziers with PIL
-    if params.display_points :
+    if True : # params.display_points :
         img = ImageMath.eval("a+157", a=img)
         img = img.convert('RGB')
         draw = ImageDraw.Draw(img)
@@ -278,7 +307,7 @@ def draw_points(path, img): # draw visual beziers with PIL
 
 # -------------------------------------------------------------------------------------------
 def rename_font(font, new_name):
-    for record in in_font['name'].names:
+    for record in font['name'].names:
         if record.nameID in [1, 4, 6]:  # Family name, Full name, PostScript name
             record.string = new_name.encode(record.getEncoding())
         # if record.nameID == 9:  # Authors names

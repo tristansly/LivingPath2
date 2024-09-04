@@ -14,9 +14,9 @@ from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from tkinterdnd2 import DND_FILES
 from functools import partial
 import pickle
-import iso639
+from iso639 import language  # iso639 and not python-iso639
 import uharfbuzz as hb
-from hyperglot import checker
+from hyperglot import checker, SupportLevel, parse, LanguageValidity
 import pprint
 
 def global_Interface(root):
@@ -55,8 +55,9 @@ def global_Interface(root):
 
     gui_zone.bind_all("<Button-1>",gui_drag_drop.on_click)
 
-    gu.Slider(gui_glob, min=-300, max=300, name='letter_spacing', flag='eco', ini=0).pack(anchor='w')
-    gu.Checkbutton(gui_glob, name='display_points', ini=False, slow=True).pack(anchor='w', pady=(20,0))
+    gu.Slider(gui_glob, min=-150, max=250, name='letter_spacing', flag='eco', ini=0).pack(anchor='w')
+    gu.Checkbutton(gui_glob, name='display_points', ini=False, slow=False).pack(anchor='w', pady=(20,0))
+    gu.Checkbutton(gui_glob, name='display_rules', ini=False, slow=False).pack(anchor='w', pady=(0,20))
     gu.Slider(gui_glob, max=1.34, name='potrace_curves', format='%0.2f', ini=0.90).pack(anchor='w')
     gu.Slider(gui_glob, max=1.5, name='potrace_simplify', format='%0.2f', ini=0.45).pack(anchor='w')
     gu.Slider(gui_glob, max=500, name='potrace_min' , ini=2).pack(anchor='w')
@@ -79,7 +80,7 @@ def global_Interface(root):
 
     global canvas
     canvas = tk.Canvas(gui_view, borderwidth=0)
-    frame_txt = tk.Frame(canvas, background="#00ff00")
+    frame_txt = tk.Frame(canvas)
     vsb = ttk.Scrollbar(root, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=vsb.set)
     vsb.pack(side="right", fill="y")
@@ -105,6 +106,7 @@ def global_Interface(root):
     root.bind("<KeyPress-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(1) )
     root.bind("<KeyRelease-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(0) )
 
+    gu.used_glyphs = []
     main.new_group()
     main.new_layer(0) # test
 
@@ -115,13 +117,6 @@ def set_mousewheel(widget, command): # Activate/deactivate mousewheel scrolling 
 def onFrameConfigure(canvas): # Reset the scroll region to encompass the inner frame
     canvas.configure(scrollregion=canvas.bbox("all"))
 
-def new_wiki():
-    wiki.get_wiki()
-    refresh_txt()
-
-def production_esc(root):
-    root.destroy()
-
 def refresh():
     img = main.get_current_img(main.current_glyph)
     m = 0 # font_utils.imgMargin
@@ -129,27 +124,31 @@ def refresh():
     refresh_img(img_letter, img)
 
 def refresh_txt():
+    root.config(cursor="watch");
+    root.update()
     main.time(None)
-
-    used = main.text_to_font(wiki.title, main.tmp_font)
+    main.text_to_font(wiki.title, main.tmp_font)
     main.time("process title")
+
     refresh_img(img_txt[0], text_titre(wiki.title, canvas.winfo_width(), 150))
     main.time("display title")
 
-    used += main.text_to_font(wiki.start, main.tmp_font, used_glyphs=used )
+    main.text_to_font(wiki.start, main.tmp_font )
     refresh_img(img_txt[1], text_block(wiki.start, 85, canvas.winfo_width() ))
 
-    main.text_to_font(wiki.sum, main.tmp_font, used_glyphs=used )
+    main.text_to_font(wiki.sum, main.tmp_font )
     refresh_img(img_txt[2], text_block(wiki.sum, 45, canvas.winfo_width() ))
     refresh_img(img_txt[3], text_block_double(wiki.sum, 45, canvas.winfo_width() ))
 
     main.time("all texts")
+    root.config(cursor="")
 
 def refresh_img(label, img):
     img = ImageTk.PhotoImage(img)
     label.configure( image = img )
     label.image = img
     label.update()
+    gu.used_glyphs.clear()
 
 def text_line(txt, w, h, dir='rl'):
     img = main.text_to_img_HB(txt, main.tmp_font, main.hbfont)
@@ -229,6 +228,8 @@ def show_glyph(flag=''):
 def drop(root,e):
     load_new_font(e.data)
 def load_new_font(data):
+    if hasattr(main.root,'config') : main.root.config(cursor="watch") ; main.root.update()
+
     if data[0] == '{': data = data[1:-1]
     main.font = TTFont( utils.path(data), recalcBBoxes=False ) # recalcBBoxes=False
     main.font_origin = TTFont( utils.path(data), recalcBBoxes=False ) # recalcBBoxes=False
@@ -241,7 +242,7 @@ def load_new_font(data):
         print("[CFF] ", end=" ")
 
     main.hbfont = hb.Font( hb.Face( hb.Blob.from_file_path(utils.path(data)) ) ) # load metric with uharfbuzz
-    
+
     gui_font_info['name'].set( "Loaded font :  " + str(main.font['name'].getName(1, 3, 1)) )
     gui_font_info['numG'].set( "  " + str(main.font['maxp'].numGlyphs) + " glyphs" )
     try:
@@ -250,39 +251,61 @@ def load_new_font(data):
         show_glyph('next')
     # refresh_txt()
     print("NEW FONT LOADED")
-    # check = checker.FontChecker(utils.path(data))
-    # typo = check.get_supported_languages()
-    # for k,v in typo.items() : print("1 typo", len(v), k)
 
-    checkGlyph = checker.CharsetChecker( main.font.getGlyphSet().keys() )
-    typo = checkGlyph.get_supported_languages()
-    for k,v in typo.items() : print("2 typo", len(v), k)
+    # check = checker.FontChecker(utils.path(data))
+    # typo = check.get_supported_languages(decomposed=False, supportlevel=SupportLevel.BASE.value )
+    # for k,v in typo.items() : print("typo got : ", len(v), k)
+
+    checkGlyph = checker.CharsetChecker( parse.parse_font_chars(main.font) )
+    typo = checkGlyph.get_supported_languages(decomposed=True,supportlevel=SupportLevel.BASE.value, validity=LanguageValidity.DRAFT.value)
+    for k,v in typo.items() : print("typo got : ", len(v), k)
 
     combo = []
     wikikeys = []
     for k in wiki.langs :
+        # print( language.Language.match(k).part3, k)
         try:
-            wikikeys.append( (k, iso639.Language.match(k).part3) )
-        except Exception as e: pass
+            wikikeys.append( (k, language.Language.match(k).part3) )
+        except Exception as e:
+            print('iso639 != wikiLang : missing ', k)
+        #     pass
 
-    for wikikey in wikikeys :
-        for val in typo.values():
-            for k,v in val.items():
-                    if wikikey[1] == str(k) :
-                        combo.append( (wikikey[0], v['name'], v['speakers'] ) )
+    for wk in wikikeys :
+        for v in typo.values():
+            # print(wk[1])
+            if wk[1] in v :
+                combo.append( (wk[0], str(v[wk[1]])[8:], v[wk[1]]['speakers'] ) )
+                break # skip same lang in differents categories
+
     combo = sorted(combo, key=lambda k:k[2], reverse=True ) # sort by lang speakers
+    # for v in combo : print(v[1], v[2] )
     print("wiki",len(wiki.langs))
     print("combo",len(combo))
-    menu_items['Lang'].delete(0, "end") # populate menu/language
+    menu_items['Language'].delete(0, "end") # populate menu/language
     for lang in combo :
-        menu_items['Lang'].add_command( label=lang[1], command=partial(wiki.set_wiki_lang, lang[0]) )
+        menu_items['Language'].add_command( label=lang[1], command=partial(set_lang, lang[0]) )
+
+    if hasattr(root,'config') : root.config(cursor="")
+
+
+def new_wiki():
+    root.config(cursor="watch"); root.update()
+    wiki.get_wiki(); root.config(cursor="")
+    refresh_txt()
+def set_lang(lang):
+    root.config(cursor="watch"); root.update()
+    wiki.set_wiki_lang(lang); root.config(cursor="")
+    refresh_txt()
+
+def production_esc(root):
+    root.destroy()
 
 #----------------------------------------------------------------------------------
 def setup_menubar(root):
     menubar = Menu(root)
     root.config(menu=menubar)
     global menu_items
-    menu_items = dict.fromkeys( [ 'File', 'Help', 'New layer', 'New group', 'Lang' ] )
+    menu_items = dict.fromkeys( [ 'File', 'Help', 'New layer', 'New group', 'Language' ] )
     for key, val in menu_items.items():
         menu_items[key] = Menu(menubar)
         menubar.add_cascade( label=key, menu=menu_items[key] )
@@ -295,17 +318,19 @@ def setup_menubar(root):
     menu_items['File'].add_command( label='Exit', command=root.destroy )
     menu_items['Help'].add_command(label='Welcome')
     menu_items['Help'].add_command(label='About...')
-    menu_items['New layer'].add_command( label='Duplicate layer', command=partial(main.duplicate_layer) )
-    menu_items['New layer'].add_separator()
     for i in range(len(main.plugins)) :
         menu_items['New layer'].add_command( label=main.names[i], command=partial(main.new_layer,i) )
-    menu_items['New group'].add_command( label='Duplicate group', command=partial(main.duplicate_group) )
-    menu_items['New group'].add_separator()
+    menu_items['New layer'].add_separator()
+    menu_items['New layer'].add_command( label='Duplicate layer', command=partial(main.duplicate_layer) )
     menu_items['New group'].add_command( label='New group', command=main.new_group )
+    menu_items['New group'].add_separator()
+    menu_items['New group'].add_command( label='Duplicate group', command=partial(main.duplicate_group) )
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
-def setup_root(root):
+def setup_root(mainRoot):
+    global root
+    root = mainRoot
     root.title('Alt-Font')
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
     wm, hm = ws/10, hs/10
@@ -342,8 +367,6 @@ def setup_root(root):
         lorem_ipsum = file.readlines()
         lorem_ipsum = [item.rstrip() for item in lorem_ipsum] # delete line jump
 #----------------------------------------------------------------------------------
-
-
 
 
 

@@ -11,6 +11,8 @@ margin = 200
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
+    from plugins import seam_carving
+    from plugins import quality_loss
     from plugins import cahn_hilliard
     from plugins import center_line
     from plugins import particles2
@@ -37,6 +39,8 @@ def path(relative_path):
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
+
+    relative_path.replace('/', os.path.sep)
 
     return os.path.join(base_path, relative_path)
 
@@ -74,8 +78,6 @@ def prev_item(list, glyph):
 def mapping(x,a,b,A,B):
     return  ((x-a)/(b-a)) * (B-A) + A
 
-def mapping(x,A,B): # si 0<x<1
-    return  x * (B-A) + A
 
 
 def constrain(val, min_val, max_val):
@@ -126,6 +128,7 @@ def cutWords(txt):
     for w in words :
         if len(w) > 14 :
             list = [w[i:i+n] for i in range(0, len(w), n)]
+            list[-1] += ' '
             out.extend(list)
         else :
             out.append( w + ' ' )

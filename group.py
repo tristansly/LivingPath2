@@ -68,7 +68,7 @@ class Group():
             # else :
             #     main.del_group(s.n, select_last=False)
 
-            print("DELETE LAYER : ",s.n,'(selected group :', main.layer.group.n,')')
+            print("DELETE LAYER :",s.n,'(selected group :', main.layer.group.n,')')
 
     def position(s, n):
         s.n = n
