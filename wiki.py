@@ -3,6 +3,7 @@ import random
 import pickle
 import os
 import glob
+import wikipediaapi
 title = "titre"
 sum = "ini□t txt init"
 start = "start ini"

@@ -3,7 +3,6 @@ from base_plugin import Plugin
 import seam_carving
 import numpy as np
 from PIL import Image
-from lib.edi import EDI_predict
 import cv2
 
 
@@ -23,9 +22,7 @@ class Layer(Plugin):
         size = img.size
         interpo = [cv2.INTER_AREA, cv2.INTER_BITS, cv2.INTER_BITS2, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_LINEAR, cv2.INTER_LINEAR_EXACT, cv2.INTER_NEAREST]
 
-
         img = np.array(img)
-        # img = EDI_predict(img, s.sampling_size, s.scale) # pas ouf ...
 
         img = cv2.resize(img, (1+int(size[0]*s.width),1+int(size[1]*s.height)), interpolation = interpo[s.interpolation1])
 

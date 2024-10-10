@@ -19,12 +19,12 @@ class Group():
         s.layers = []
         s.op = 0
         s.gui_op, s.ico_on, s.ico_off = [], [], []
-        s.op_frame = ttk.Frame(gui.gui_zone, style='Card.TFrame')
+        s.op_frame = ttk.Frame(gui.gui_zone)
         s.drag_frame = None
         s.img = Image.new('L', (50, 50),(200))
         for i in range(5) :
-            s.ico_on.append( ImageTk.PhotoImage(Image.open(utils.path('files/theme/op-on-'+str(i)+'.png')).resize((20, 20), Image.NEAREST)) )
-            s.ico_off.append(ImageTk.PhotoImage(Image.open(utils.path('files/theme/op-off-'+str(i)+'.png')).resize((20, 20), Image.NEAREST)) )
+            s.ico_on.append( gui_utils.get_img('op-on-'+str(i)+'.png', (20,20)) )
+            s.ico_off.append( gui_utils.get_img('op-off-'+str(i)+'.png', (20,20)) )
             s.gui_op.append( ttk.Checkbutton( s.op_frame, width=1.2, style='no_indicatoron.TCheckbutton',
                 command = partial(s.set_op, i), image=s.ico_off[i], compound="left", takefocus=False) )
             s.gui_op[i].grid( row=i, column=0 )
@@ -74,10 +74,10 @@ class Group():
         s.n = n
 
         for i, layer in enumerate(s.layers) :
-            layer.frame.grid( column=n*2, row=i, padx=15, pady=4 )
+            layer.frame.grid( column=n*2, row=i, padx=15, pady=4, sticky='' )
 
         print("position : ", n)
-        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2)-1, row=0, sticky='nsew', rowspan='20' )
+        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2)-1, row=0, sticky='', rowspan='20' )
 
     def set_op(s, op, refresh=True):
         s.op = op
@@ -109,7 +109,7 @@ class Layer(Plugin):
         gui_utils.Checkbutton(frame, layer=s, name='outline',                   ini=False ).grid(column=0, row=0, sticky='ew')
         gui_utils.Slider(frame, layer=s, max=200, name='outline_width',         ini=100   ).grid(column=0, row=1, sticky='ew')
         gui_utils.Slider(frame, layer=s, max=3, name='outline_join',            ini=2     ).grid(column=0, row=2, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=300000, name='outline_join_limit', ini=160000).grid(column=0, row=3, sticky='ew')
+        gui_utils.Slider(frame, layer=s, max=300, name='outline_join_limit', ini=160).grid(column=0, row=3, sticky='ew')
 
         gui_utils.Slider(frame, layer=s, max=200, name='dots_distance', ini=100).grid(column=0, row=4, sticky='ew')
         gui_utils.Slider(frame, layer=s, max=200, name='dots_size', ini=10).grid(column=0, row=5, sticky='ew')

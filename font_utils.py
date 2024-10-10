@@ -16,8 +16,7 @@ import pprint
 
 
 def glyph_to_img(font, glyph): # unused
-    gs = font.getGlyphSet()
-    pen = FreeTypePen( gs )
+    pen = FreeTypePen( font.getGlyphSet() )
     font.getGlyphSet()[glyph].draw(pen)
     img = path_utils.pen_to_img( pen, font, glyph )
     return img
@@ -75,6 +74,8 @@ def pt(a):
     coef = 64
     return (a.x//coef, a.y//coef)  # not sure about // : int or float
 
+
+from fontTools.misc.psCharStrings import encodeIntT2
 def glyph_to_font_outline(g, in_font, font, group):
     l = group.layers[0]
     gs = in_font.getGlyphSet()
@@ -83,11 +84,11 @@ def glyph_to_font_outline(g, in_font, font, group):
     outline = ft.Outline( fpen.outline() )
 
     if 'glyf' in font : pen = TTGlyphPen( font.getGlyphSet() )
-    if 'CFF ' in font : pen = T2CharStringPen(600, font.getGlyphSet())
+    if 'CFF ' in font : pen = T2CharStringPen(gs[g].width, font.getGlyphSet())
     tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
 
     stroker = ft.Stroker()
-    width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit
+    width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit*1000
     stroker.set(width*20, linecap, join, limit)
     if not l.outline and width>100 :  stroker.set( (width-100)*20, linecap, join, limit)
     if not l.outline and width<=100 : stroker.set( (100-width)*20, linecap, join, limit)
@@ -109,15 +110,15 @@ def vectorization(img, params=params):
     # C++ binding : pypotrace - version mac (a tester) https://github.com/flupke/pypotrace
     # full python : potracer - https://github.com/tatarize/potrace
     # Cython : pyAutoTrace - ça marche aussi - https://github.com/lemonyte/pyautotrace
-    width = float(img.size[0])*params.potrace_size
+    width = float(img.size[0])*params.accuracy
     wpercent = float(width)/float(img.size[0])
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
     bmp = potracer.Bitmap(data) # Create a bitmap from the array
-    path = bmp.trace( alphamax=params.potrace_curves, opticurve=True, opttolerance=params.potrace_simplify, turdsize=params.potrace_min)
+    path = bmp.trace( alphamax=params.curves_limit, opticurve=True, opttolerance=params.simplify_path) # turdsize=params.minimal_zone
 
-    return path_utils.resize_path( path, 1/params.potrace_size )
+    return path_utils.resize_path( path, 1/params.accuracy )
 
 
 def path_to_font(path, glyph, font, path_type="potrace"):
@@ -126,19 +127,26 @@ def path_to_font(path, glyph, font, path_type="potrace"):
     gs = font.getGlyphSet()
 
     if 'glyf' in font : pen = TTGlyphPen( gs )
-    if 'CFF ' in font : pen = T2CharStringPen(600, gs)
-    tpen = TransformPen(pen, (1, 0, 0, -1, -utils.margin, font['OS/2'].usWinAscent))
+    if 'CFF ' in font :
+        X = font['CFF '].cff[0].Private.nominalWidthX if 'nominalWidthX' in font['CFF '].cff[0].Private.rawDict else 0
+        pen = T2CharStringPen(gs[glyph].width - X, gs); # gliphWidth - nominalWidthX
 
-    if path_type == "potrace": path_to_pen(path,tpen,pen)
-    if path_type == "array": array_to_pen(path,tpen,pen)
+    tpen = TransformPen(pen, (1, 0, 0, -1, -utils.margin, font['OS/2'].usWinAscent))
+    if path_type == "potrace": path_to_pen(path,tpen)
+    if path_type == "array": array_to_pen(path,tpen)
 
     # pprint.pprint(vars(gs[glyph]))
     if 'glyf' in font : font['glyf'][glyph] = pen.glyph(dropImpliedOnCurves=True)
     if 'CFF ' in font :
         cs = pen.getCharString()
         cs.compile()
-        font['CFF '].cff.topDictIndex[0].CharStrings[glyph].bytecode = cs.bytecode
-def path_to_pen(path,tpen,pen):
+        font['CFF '].cff[0].CharStrings[glyph].bytecode = cs.bytecode
+
+        font['CFF '].cff[0].CharStrings[glyph].calcBounds(gs) # not sure if useful
+
+    # print( gs[glyph].width , font.getGlyphSet()[glyph].width ,font['hmtx'][glyph][0] )
+
+def path_to_pen(path,tpen):
     for curve in path:
         tpen.moveTo(( curve.start_point.x , curve.start_point.y ))
         for segment in curve:
@@ -149,8 +157,8 @@ def path_to_pen(path,tpen,pen):
                 tpen.lineTo((x, y))
             else:
                 tpen.curveTo( (segment.c1.x,segment.c1.y), (segment.c2.x,segment.c2.y), (x, y))
-        pen.closePath()
-def array_to_pen(arr,tpen,pen):
+        tpen.closePath()
+def array_to_pen(arr,tpen):
     for cur in arr:
         tpen.moveTo(( cur[0][2] , cur[0][3] ))
         for seg in cur:
@@ -161,7 +169,7 @@ def array_to_pen(arr,tpen,pen):
                 tpen.lineTo((x, y))
             else:
                 tpen.curveTo( (seg[2],seg[3]), (seg[4],seg[5]), (x, y))
-        pen.closePath()
+        tpen.closePath() # pen or tpen ?
 
 # -------------------------------------------------------------------------------------------
 def text_to_img_PIL(txt):
@@ -250,20 +258,41 @@ def operator_img(img, img2, op):
 def draw_rules(img, g, font): # draw visual beziers with PIL
     img = img.convert('RGB')
     draw = ImageDraw.Draw(img)
-    asc, des = font['OS/2'].usWinAscent, font['OS/2'].usWinDescent
-    cap, xheight = font['OS/2'].sCapHeight, font['OS/2'].sxHeight
-    m = utils.margin
-    width = font.getGlyphSet()[g].width
+
+    # aaa = font['OS/2'].sTypoAscender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'sTypoAscender')
+    # aaa = font['OS/2'].sTypoDescender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'sTypoDescender')
+    # aaa = font['hhea'].ascender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'ascender')
+    # aaa = font['hhea'].descender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'descender')
+
+    if hasattr(font['OS/2'], 'usWinAscent') : asc = font['OS/2'].usWinAscent
+    elif hasattr(font['hhea'], 'ascender') : asc = font['hhea'].ascender
+    else : asc = 4000
+
+    if hasattr(font['OS/2'], 'usWinDescent') : des = font['OS/2'].usWinDescent
+    elif hasattr(font['OS/2'], 'sTypoDescender') : des = abs(font['OS/2'].sTypoDescender)
+    elif hasattr(font['hhea'], 'descender') : des = abs(font['hhea'].descender)
+    else : des = 4000
+
+    if hasattr(font['OS/2'], 'sCapHeight') : cap = font['OS/2'].sCapHeight
+    elif hasattr(font['OS/2'], 'sTypoAscender') : cap = abs(font['OS/2'].sTypoAscender)
+    else : cap = 4000
+
+    if hasattr(font['OS/2'], 'sxHeight') : xheight = font['OS/2'].sxHeight
+    else : xheight = 4000
+
+    print(asc, des, cap, xheight)
+
+    m, mm = utils.margin, 35
+    width = font.getGlyphSet()[g].width + params.letter_spacing
     c = '#555' #(0, 127, 255)
-    lineLabel(draw, (0,asc, img.width,asc), c, 2, 'base line')
-    lineLabel(draw, (0,asc+des, img.width,asc+des), c, 2, 'descender')
-    lineLabel(draw, (0,cap-des-m, img.width,cap-des-m), c, 2, 'caps')
-    lineLabel(draw, (0,asc-xheight, img.width,asc-xheight), c, 2, 'xheight')
+    lineLabel(draw, (0,asc, width+m+mm,asc ), c, 2, 'base line')
+    lineLabel(draw, (0,asc+des, width+m+mm,asc+des ), c, 2, 'descender')
+    lineLabel(draw, (0,cap-des-m, width+m+mm,cap-des-m ), c, 2, 'caps')
+    lineLabel(draw, (0,asc-xheight, width+m+mm,asc-xheight ), c, 2, 'xheight')
+    lineLabel(draw, (0,m, width+m+mm,m), c, 2, 'ascender')
 
-    lineLabel(draw, (width+params.letter_spacing+m,0, width+params.letter_spacing+m,img.height), c, 2, str(width+params.letter_spacing), vert=img.height)
-
-    lineLabel(draw, (0,m, img.width,m), c, 2, 'ascender')
-    lineLabel(draw, (m,0, m,img.height), c, 2, '0', vert=img.height)
+    lineLabel(draw, (width+m,m-mm, width+m,img.height), c, 2, str(width), vert=img.height)
+    lineLabel(draw, (m,m-mm, m,img.height), c, 2, '0', vert=img.height)
 
     return img
 
@@ -306,12 +335,32 @@ def draw_points(path, img): # draw visual beziers with PIL
     return img
 
 # -------------------------------------------------------------------------------------------
-def rename_font(font, new_name):
+
+# https://learn.microsoft.com/en-us/typography/opentype/spec/name#name-ids
+
+def rename_font(font, name, style):
+    name_style = name +" "+ style
+
     for record in font['name'].names:
-        if record.nameID in [1, 4, 6]:  # Family name, Full name, PostScript name
-            record.string = new_name.encode(record.getEncoding())
-        # if record.nameID == 9:  # Authors names
-        #     record.string = new_name.encode(record.getEncoding())
-        # if record.nameID == 12:  # Autors URLs Links
-        #     record.string = new_name.encode(record.getEncoding())
+        enc = record.getEncoding()
+        id = record.nameID
+        sys = record.platformID
+        # print(id,sys,record.platEncID,record.langID,"---", record.string.decode(enc) )
+
+        if id==1 and sys==1: record.string = name.encode(enc) # windows
+        if id==1 and sys==3: record.string = name_style.encode(enc) # mac version ?
+        if id==16: record.string = name.encode(enc) # Family name
+        if id==2 or id==17: record.string = style.encode(enc) # style
+        if id== 3 or id==5: record.string += str(';LivingPath;'+name_style).encode(enc) # unique id, version id
+        if id== 4: record.string = name_style.encode(enc) # full name
+        if id== 6: record.string = str(name+"-"+style).replace(" ","").encode(enc) # PostScript name
+        # if id == 9:  # Authors names
+        # if id == 12:  # Autors URLs Links
+        # if id == 16: # record.string = nameID16_string
+
+        if 'CFF ' in font:
+            if 'FamilyName' in font['CFF '].cff[0].rawDict: font['CFF '].cff[0].FamilyName = name
+            if 'FullName' in font['CFF '].cff[0].rawDict: font['CFF '].cff[0].FullName = name_style
+            if 'Weight' in font['CFF '].cff[0].rawDict: font['CFF '].cff[0].Weight = style
+
     return font

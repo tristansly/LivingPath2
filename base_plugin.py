@@ -13,25 +13,40 @@ class Plugin(object):
     def __init__(s):
         s.group = None
         s.n = None
+        s.active=True
+        s.img = None
 
     def setup_gui(s):
         s.frame = ttk.Frame(gui.gui_zone)
 
-        s.gui_button = ttk.Checkbutton(s.frame, text=s.name.replace('_', ' '), style='Toggle.TButton')
+        s.gui_button = ttk.Checkbutton(s.frame, text=s.name.replace('_', ' '), style='Toggle.TButton', width=20)
         s.gui_button.grid( column=1, row=0, padx=2, pady=2, sticky="nsew" )
 
-        s.gui_drag = ttk.Button(s.frame, text="lll" if s.name!='outline' else "   ", width=1.2, style='Toggle.TButton')
-        s.gui_drag.grid( column=0, row=0, padx=2, pady=2, sticky="nsew" )
-        s.gui_del = ttk.Button(s.frame, text="X", width=1.2, style='Toggle.TButton')
-        s.gui_del.grid( column=2, row=0, padx=2, pady=2 )
+        s.gui_drag = ttk.Button(s.frame, text="lll" ,width=1.2)
+        s.gui_del = ttk.Button(s.frame, text="X", width=1.2)
+        s.gui_toggle = ttk.Button(s.frame, text='⋁', width=1.2, command = s.toogle)
+
+        if s.name!='outline' : s.gui_drag.grid( column=0, row=0, padx=2, pady=2, sticky="nsew" )
+        if s.name!='outline' : s.gui_toggle.grid( column=2, row=0, padx=2, pady=2 )
+        s.gui_del.grid( column=3, row=0, padx=2, pady=2 )
+
+    def toogle(s):
+        s.active = not s.active
+        if s.gui_toggle['text']=='⋁' : s.gui_toggle.configure(text='∵')
+        else:                          s.gui_toggle.configure(text='⋁')
+        gui.refresh()
 
     def gui_position(s, n, group=None ):
         if group : s.group = group
         s.n = n
-        s.frame.grid( column=(s.group.n*2), row=n, padx=15, pady=4 )
+        s.frame.grid( column=(s.group.n*2), row=n, padx=15, pady=4, sticky="" )
         s.gui_button.config( command = partial(main.select_layer, s) )
         if s.name!='outline' : s.gui_del.config( command = partial(s.group.del_layer, s.n) )
         if s.name=='outline' : s.gui_del.config( command = partial(main.del_group, s.group.n) )
+
+        # print(btn.winfo_width(), btn.winfo_x() )
+        # if s.name!='outline' : s.gui_button.config( width='')
+
         print("LAYER POS :", n, " ", s.name, end=' ' )
 
     def change_order(s, group, layer, refresh=True):
@@ -55,7 +70,11 @@ class Plugin(object):
     def gui(s, frame):
         None
     def run(s, img):
-        print("plugin")
+        return img
+
+    def run_and_save(s, img):
+        img = s.run(img)
+        s.img = img
         return img
 
     def gost(s):

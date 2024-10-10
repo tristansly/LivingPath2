@@ -75,7 +75,18 @@ def autotrace_to_ftoutline( vector, offset=(1,0,0,1,0,0) ):
                 tpen.curveTo( (v.points[1].x,v.points[1].y), (v.points[2].x,v.points[2].y), (v.points[3].x,v.points[3].y))
         tpen.endPath()
     return ft.Outline( pen.outline() )
+# -------------------------------------------------------------------------------------------
 
+def cv2_to_ftoutline( vector, offset=(1,0,0,1,0,0) ): # cv2 open polygons
+    pen = FreeTypePen( None )
+    tpen = TransformPen(pen, offset)
+    for path in vector :
+        tpen.moveTo((path[0][0][0], path[0][0][1]))
+        # print("Path:", path[0][0][0],path[0][0][1], "pts:",len(path))
+        for v in path :
+            tpen.lineTo((v[0][0],v[0][1]))
+        tpen.endPath()
+    return ft.Outline( pen.outline() )
 # -------------------------------------------------------------------------------------------
 
 

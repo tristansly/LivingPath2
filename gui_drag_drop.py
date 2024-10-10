@@ -20,7 +20,7 @@ def changeOrder(widget1, widget2, initial):
 
 def on_click(event):
     btn = event.widget
-    print('drag',btn)
+    # print('drag',btn)
     if isinstance(btn, ttk.Button) and btn['text'] == 'lll':
         frame = event.widget.master
         start = (event.x,event.y)
@@ -30,8 +30,10 @@ def on_click(event):
         print('CLICK : frame ', frame)
         btn.bind("<B1-Motion>", lambda event:drag_motion(event, frame, start))
         btn.bind("<ButtonRelease-1>", lambda event:drag_release(event, frame, clone, grid_info))
-    else:
-        gui.gui_zone.unbind("<ButtonRelease-1>")
+
+    # j'ai cru que c'etait ça qui fait bugger les slider et en fait nan... est ce que ça sert à qqchose ce unbind ?
+    # else:
+    #     gui.gui_zone.unbind("<ButtonRelease-1>") 
 
 
 def drag_motion(event, frame, start):

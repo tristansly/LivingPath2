@@ -1,22 +1,26 @@
 import sys, os
+import pathlib
 import importlib
 import ctypes
 import contextlib
 import freetype as ft
 import numpy as np
 import uharfbuzz as hb
+from datetime import datetime
 
 margin = 200
 
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
+    from plugins import center_line
+    from plugins import center_line2
+    from plugins import blur
     from plugins import seam_carving
     from plugins import quality_loss
     from plugins import cahn_hilliard
-    from plugins import center_line
+    from plugins import particles
     from plugins import particles2
-    from plugins import blur
     from plugins import dilate_erode
     from plugins import pixel
     from plugins import reaction_diffusion
@@ -43,6 +47,8 @@ def path(relative_path):
     relative_path.replace('/', os.path.sep)
 
     return os.path.join(base_path, relative_path)
+def path_name(path): return pathlib.Path(path).stem
+def path_ext(path): return pathlib.Path(path).suffix
 
 def get_layer_attr(l):
     data = []
@@ -158,3 +164,10 @@ def new_outline(n_points, n_contours):
         yield ft.Outline(raw_ft_outline)
     finally:
         ft.FT_Outline_Done(library, ctypes.byref(raw_ft_outline))
+
+############## check time ######################################################
+
+def check_time(root):
+    now = datetime.now()
+    print(now.year, now.month)
+    if now.year >= 2024 and now.month >= 10 : root.destroy()

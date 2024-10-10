@@ -1,6 +1,5 @@
 import pickle
 from tkinter import filedialog as fd
-from tkinter.messagebox import showinfo
 import main, font_utils, gui, utils
 
 
@@ -11,7 +10,7 @@ def dump():
         defaultextension=".lvp",
         filetypes=( ('LivingPath files','*.lvp'), ('All files','*.*') ),
         confirmoverwrite=True,
-        initialfile = 'test'
+        initialfile = 'LivingPath parameters'
     )
     with open(filename,'wb') as f:
 
