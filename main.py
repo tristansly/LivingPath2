@@ -16,7 +16,7 @@ import copy
 import pprint
 
 plugins, names, groups = [], [], []
-layer = None
+layer, over_layer = None, None
 current_glyph = 'g'
 root = None
 font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
@@ -35,17 +35,18 @@ def time(msg):
     elif msg : print( msg+':',str(perf_counter()-last_time).replace('0','-')[0:5], end='  ' )
     last_time = perf_counter()
 
-def get_current_img( key, visual_info=True ):
+def get_current_img( key, visual_info=True, compute=True ):
     time(None)
     global img
-    for g in groups: # apply algos to pixels
-        img = glyph_to_img_outline(key, font, g)
-        for l in g.layers:
-            if l.active :
-                img = l.run_and_save(img)
-        if g.n > 0 : img = operator_img(img, prev_img, g.op)
-        prev_img = img
-    time("algo")
+    if compute :
+        for g in groups: # apply algos to pixels
+            img = glyph_to_img_outline(key, font, g)
+            for l in g.layers:
+                if l.active :
+                    img = l.run_and_save(img)
+            if g.n > 0 : img = operator_img(img, prev_img, g.op)
+            prev_img = img
+        time("algo")
 
     if params.display_points and visual_info :
         path = vectorization( img )
@@ -55,11 +56,13 @@ def get_current_img( key, visual_info=True ):
     if params.display_rules and visual_info :
         img = draw_rules(img, key, font )
     time("end")
-    if visual_info :
-        mask = PIL.ImageOps.invert(layer.img).point(lambda i: i//3)
-        img = img.convert('RGB')
-        img.paste((80,160,255), (0,0), mask )
-    return img
+    out = img
+    if visual_info and over_layer :
+        mask = PIL.ImageOps.invert(over_layer.img).point(lambda i: i//3)
+        out = out.convert('RGB')
+        out.paste((80,160,255), (0,0), mask )
+        print(over_layer.name)
+    return out
 
 def process_to_path(args):
     (key, param, groups, font) = args
@@ -103,7 +106,9 @@ def text_to_font(txt, out_font, char_to_glyph=True):
 
 def process_font_export(path='', name=None, style=None ):
     global font
-    gs = {k: v for k, v in font.getGlyphSet().items() if k in string.ascii_lowercase } # filter
+    # gs = {k: v for k, v in font.getGlyphSet().items() if k in string.ascii_lowercase } # filter GLYPH SETS
+    gs = font.getGlyphSet()
+    # gs = "foudrefeuF"
     text_to_font(gs, font, char_to_glyph=False)
 
     # for key in font.getGlyphSet():

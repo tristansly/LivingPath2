@@ -94,8 +94,8 @@ def global_Interface(root):
     main.new_layer(0) # test
 
 
-def refresh():
-    img = main.get_current_img(main.current_glyph)
+def refresh(compute=True):
+    img = main.get_current_img(main.current_glyph, compute=compute)
     m = 0 # font_utils.imgMargin
     img = img.crop((m, m, img.width-m, img.height-m)).resize((img.width//2,img.height//2),1)
     refresh_img(img_letter, img)
@@ -104,6 +104,7 @@ def refresh_txt():
     root.config(cursor="watch");
     root.update()
     main.time(None)
+    wiki.title = "Foudre feu"
     main.text_to_font(wiki.title, main.tmp_font)
     main.time("process title")
 

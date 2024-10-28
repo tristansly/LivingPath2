@@ -18,10 +18,11 @@ class Plugin(object):
 
     def setup_gui(s):
         s.frame = ttk.Frame(gui.gui_zone)
+        s.frame.bind("<Enter>", lambda _: s.enter_btn())
+        s.frame.bind("<Leave>", lambda _: s.leave_btn())
 
-        s.gui_button = ttk.Checkbutton(s.frame, text=s.name.replace('_', ' '), style='Toggle.TButton', width=20)
+        s.gui_button = ttk.Checkbutton(s.frame, text=s.name.replace('_',' '), style='Toggle.TButton', width=20)
         s.gui_button.grid( column=1, row=0, padx=2, pady=2, sticky="nsew" )
-
         s.gui_drag = ttk.Button(s.frame, text="lll" ,width=1.2)
         s.gui_del = ttk.Button(s.frame, text="X", width=1.2)
         s.gui_toggle = ttk.Button(s.frame, text='⋁', width=1.2, command = s.toogle)
@@ -85,3 +86,10 @@ class Plugin(object):
         b.gui_button = b.gui_drag = b.frame = b.gui_del = b.group =42
 
         return b
+
+    def enter_btn(s):
+        main.over_layer = s
+        gui.refresh(compute=False)
+    def leave_btn(s):
+        main.over_layer = None
+        gui.refresh(compute=False)

@@ -33,7 +33,7 @@ def on_click(event):
 
     # j'ai cru que c'etait ça qui fait bugger les slider et en fait nan... est ce que ça sert à qqchose ce unbind ?
     # else:
-    #     gui.gui_zone.unbind("<ButtonRelease-1>") 
+    #     gui.gui_zone.unbind("<ButtonRelease-1>")
 
 
 def drag_motion(event, frame, start):
@@ -64,7 +64,7 @@ def on_enter(event):
     print("--- enter---")
 def on_leave(event):
     event.widget.configure( style='' )
-    print("--- enter---")
+    print("--- leave---")
 
 
 
