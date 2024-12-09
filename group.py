@@ -30,7 +30,9 @@ class Group():
             s.gui_op[i].grid( row=i, column=0 )
         s.gui_op[s.op].config( image=s.ico_on[s.op] )
 
+        print("new group position : ", s.n)
         s.position( len(main.groups) )
+        print("new group position : ", s.n)
         s.new_layer(-1, ini=True)
         main.select_layer( s.layers[-1] )
 
@@ -43,22 +45,15 @@ class Group():
         main.layer.setup_gui()
         main.layer.gui_position( len(s.layers)-1 )
         main.select_layer( main.layer )
-        s.set_drag_zone()
         if not ini and refresh : gui.refresh()
         print(f'NEW LAYER : (G{s.n}) {main.layer.name}')
-
-    def set_drag_zone(s):
-        if s.drag_frame : s.drag_frame.destroy()
-        s.drag_frame = ttk.Frame(gui.gui_zone) # style='Card.TFrame'
-        s.drag_frame.grid( column=s.n*2, row=len(s.layers), rowspan=20, sticky='nsew' )
-        # gui.gui_zone.rowconfigure(s.n*2, weight=3-len(s.layers) )
 
     def del_layer(s, n, refresh=True):
         if len(s.layers) != 1 or s.n != 0 : # prevent delete 1st layer
             s.layers[n].frame.destroy()
             s.layers.pop(n)
             for l in range(len(s.layers)): s.layers[l].gui_position(l)
-            s.set_drag_zone()
+            main.over_layer = None
 
             if refresh :
                 if len(s.layers) == 0 : main.del_group(s.n)
@@ -72,11 +67,10 @@ class Group():
 
     def position(s, n):
         s.n = n
-
         for i, layer in enumerate(s.layers) :
             layer.frame.grid( column=n*2, row=i, padx=15, pady=4, sticky='' )
+            # layer.group = s
 
-        print("position : ", n)
         s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2)-1, row=0, sticky='', rowspan='20' )
 
     def set_op(s, op, refresh=True):

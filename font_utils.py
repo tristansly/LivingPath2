@@ -131,7 +131,8 @@ def path_to_font(path, glyph, font, path_type="potrace"):
         X = font['CFF '].cff[0].Private.nominalWidthX if 'nominalWidthX' in font['CFF '].cff[0].Private.rawDict else 0
         pen = T2CharStringPen(gs[glyph].width - X, gs); # gliphWidth - nominalWidthX
 
-    tpen = TransformPen(pen, (1, 0, 0, -1, -utils.margin, font['OS/2'].usWinAscent))
+    s = font['head'].unitsPerEm /1000 # some font are more than 1000 u/em
+    tpen = TransformPen(pen, (s, 0, 0, -s, -utils.margin*s, font['OS/2'].usWinAscent))
     if path_type == "potrace": path_to_pen(path,tpen)
     if path_type == "array": array_to_pen(path,tpen)
 
@@ -198,11 +199,12 @@ def text_to_img_HB(text, ttfont, hbfont):
     buf = hb.Buffer()
     buf.add_str(text)
     # buf.direction = direction
-    # buf.replacement_codepoint = ttfont.getGlyphID('space')
-    # buf.not_found_glyph = ttfont.getGlyphID('space')
-    if 'space' in ttfont.getReverseGlyphMap() :
+
+    if 'space' in ttfont.getReverseGlyphMap() :   # remplacement glyph
         buf.replacement_codepoint = hbfont.get_nominal_glyph(ord(" "))
         buf.not_found_glyph = hbfont.get_nominal_glyph(ord(" "))
+        # buf.not_found_glyph = ttfont.getGlyphID('space')
+
     buf.guess_segment_properties()
     # try:
     hb.shape(hbfont, buf, features)
@@ -220,7 +222,10 @@ def text_to_img_HB(text, ttfont, hbfont):
             #     print("(utils.py) Char to glyph error : '"+char+"'")
             # ttfont.getGlyphSet()[ g ].draw( transformed )
 
-            ttfont.getGlyphSet()[ ttfont.getGlyphName(gid) ].draw( transformed )
+            try:
+                ttfont.getGlyphSet()[ ttfont.getGlyphName(gid) ].draw( transformed )
+            except Exception as e:
+                raise
             # hbfont.draw_glyph_with_pen(gid, transformed)
 
             x += pos.x_advance + params.letter_spacing
@@ -258,40 +263,41 @@ def operator_img(img, img2, op):
 def draw_rules(img, g, font): # draw visual beziers with PIL
     img = img.convert('RGB')
     draw = ImageDraw.Draw(img)
-
     # aaa = font['OS/2'].sTypoAscender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'sTypoAscender')
     # aaa = font['OS/2'].sTypoDescender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'sTypoDescender')
     # aaa = font['hhea'].ascender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'ascender')
     # aaa = font['hhea'].descender; print(aaa); lineLabel(draw, (0,aaa, img.width,aaa), '#199', 2, 'descender')
 
-    if hasattr(font['OS/2'], 'usWinAscent') : asc = font['OS/2'].usWinAscent
-    elif hasattr(font['hhea'], 'ascender') : asc = font['hhea'].ascender
+    s = font['head'].unitsPerEm /1000 # some font are more than 1000 u/em
+
+    if hasattr(font['OS/2'], 'usWinAscent') : asc = font['OS/2'].usWinAscent /s
+    elif hasattr(font['hhea'], 'ascender') : asc = font['hhea'].ascender /s
     else : asc = 4000
 
-    if hasattr(font['OS/2'], 'usWinDescent') : des = font['OS/2'].usWinDescent
-    elif hasattr(font['OS/2'], 'sTypoDescender') : des = abs(font['OS/2'].sTypoDescender)
-    elif hasattr(font['hhea'], 'descender') : des = abs(font['hhea'].descender)
+    if hasattr(font['OS/2'], 'usWinDescent') : des = font['OS/2'].usWinDescent /s
+    elif hasattr(font['OS/2'], 'sTypoDescender') : des = abs(font['OS/2'].sTypoDescender) /s
+    elif hasattr(font['hhea'], 'descender') : des = abs(font['hhea'].descender) /s
     else : des = 4000
 
-    if hasattr(font['OS/2'], 'sCapHeight') : cap = font['OS/2'].sCapHeight
-    elif hasattr(font['OS/2'], 'sTypoAscender') : cap = abs(font['OS/2'].sTypoAscender)
+    if hasattr(font['OS/2'], 'sCapHeight') : cap = font['OS/2'].sCapHeight /s
+    elif hasattr(font['OS/2'], 'sTypoAscender') : cap = abs(font['OS/2'].sTypoAscender) /s
     else : cap = 4000
 
-    if hasattr(font['OS/2'], 'sxHeight') : xheight = font['OS/2'].sxHeight
+    if hasattr(font['OS/2'], 'sxHeight') : xheight = font['OS/2'].sxHeight /s
     else : xheight = 4000
 
-    print(asc, des, cap, xheight)
+    print("metrics :", asc, des, cap, xheight)
 
+    width = font.getGlyphSet()[g].width /s + params.letter_spacing
     m, mm = utils.margin, 35
-    width = font.getGlyphSet()[g].width + params.letter_spacing
     c = '#555' #(0, 127, 255)
     lineLabel(draw, (0,asc, width+m+mm,asc ), c, 2, 'base line')
     lineLabel(draw, (0,asc+des, width+m+mm,asc+des ), c, 2, 'descender')
-    lineLabel(draw, (0,cap-des-m, width+m+mm,cap-des-m ), c, 2, 'caps')
+    lineLabel(draw, (0,cap-des-m, width+m+mm,cap-des-m ), c, 2, 'cap')
     lineLabel(draw, (0,asc-xheight, width+m+mm,asc-xheight ), c, 2, 'xheight')
     lineLabel(draw, (0,m, width+m+mm,m), c, 2, 'ascender')
 
-    lineLabel(draw, (width+m,m-mm, width+m,img.height), c, 2, str(width), vert=img.height)
+    lineLabel(draw, (width+m,m-mm, width+m,img.height), c, 2, str(int(width*s)), vert=img.height)
     lineLabel(draw, (m,m-mm, m,img.height), c, 2, '0', vert=img.height)
 
     return img
@@ -302,7 +308,7 @@ def lineLabel(draw, coord, coul, width=2, txt='', vert=None):
     pos = (coord[0],coord[1]+4) if not vert else (coord[0]+8,vert-20)
     draw.text(pos, txt, font=arial, fill='#222')
 
-def draw_points(path, img): # draw visual beziers with PIL
+def draw_paths(path, img): # draw visual beziers with PIL
     if True : # params.display_points :
         img = ImageMath.eval("a+157", a=img)
         img = img.convert('RGB')

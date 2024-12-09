@@ -256,7 +256,7 @@ def scroll_letter(e):
 
 #----------------------------------------------------------------------------------
 
-class TextBox(object):
+class AskBox(object):
     root = None
     def __init__(self, root, title, data=None, callback=None):
         """ data = <sequence> (dictionary, key) to associate with user input
@@ -273,11 +273,18 @@ class TextBox(object):
 
         self.entries = {}
         for key, val in data.items():
-            label = ttk.Label(frame, text=key)
-            label.pack(fill='x', expand=True, padx=0, pady=(20,0))
-            self.entries[key] = ttk.Entry(frame)
-            self.entries[key].pack(fill='x', expand=True, pady=10)
-            self.entries[key].insert(0, val)
+            if (key.startswith('combo:')):
+                label = ttk.Label(frame, text=key[6:])
+                label.pack(fill='x', expand=True, padx=0, pady=(20,0))
+                self.entries[key] = ttk.Combobox(frame, values=val)
+                self.entries[key].pack(fill='x', expand=True, pady=10)
+                self.entries[key].current(0)
+            else :
+                label = ttk.Label(frame, text=key)
+                label.pack(fill='x', expand=True, padx=0, pady=(20,0))
+                self.entries[key] = ttk.Entry(frame)
+                self.entries[key].pack(fill='x', expand=True, pady=10)
+                self.entries[key].insert(0, val)
 
         b_submit = ttk.Button(frame, text='Export')
         b_submit['command'] = lambda: self.entry_to_dict(data)
@@ -296,3 +303,30 @@ class TextBox(object):
                 data[key] = entry
         self.top.destroy()
         self.callback(data)
+
+class LoadBox(object):
+    root = None
+    def __init__(self, root, title):
+        """ Loading bar """
+        self.root = root
+        self.top = tk.Toplevel(self.root)
+        self.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+        self.top.title(title)
+        self.root.eval(f'tk::PlaceWindow {str(self.top)} center')
+        frame = ttk.Frame(self.top)
+        frame.pack(fill='both', expand=True, padx=50, pady=30)
+
+        self.txt = tk.StringVar()
+        ttk.Label(frame, textvariable=self.txt).pack(fill='x', expand=True, padx=0, pady=(0,0))
+
+        self.progress = ttk.Progressbar( frame, value=0, length=100, mode="determinate" )
+        self.progress.pack(fill='x', expand=True, padx=0, pady=(20,0))
+
+        self.stop = False
+        b_cancel = ttk.Button(frame, text='Skip')
+        b_cancel['command'] = self.cancel
+        b_cancel.pack(side='bottom', padx=50, pady=(20,20))
+        self.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
+
+    def cancel(self):
+        self.stop = True

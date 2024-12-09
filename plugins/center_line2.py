@@ -23,7 +23,7 @@ class Layer(Plugin):
         s.outline = True
         s.outline_join_limit = 160000
 
-        gui.Slider(frame, max=200, ini=0, layer=s, name='size').pack(anchor='w')
+        gui.Slider(frame, min=1, max=200, ini=60, layer=s, name='size').pack(anchor='w')
 
         skel = gui.LockSliders( frame, False,
             dict(layer=s, min=1, max=50, ini=1, name='distortion_width'),

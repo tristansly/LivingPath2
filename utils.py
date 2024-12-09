@@ -108,13 +108,13 @@ def constrain(val, min_val, max_val):
 def get_used_glyphs(txt, ttfont, hbfont):
     charlist = np.unique(list(txt)).tolist()
     glyphs = []
-    # for i in charlist : # without huarfbuzz
+    # for i in charlist : # try to convert without huarfbuzz
     #     try:
     #         glyphs.append(font.getBestCmap()[ord(i)] )
     #     except Exception as e:
     #         print("(utils.py) Char to glyph error : '"+i+"'")
 
-    features = {"kern": True, "liga": True}
+    features = {"kern": True, "liga": True} # convert glyphs name with huarfbuzz
     buf = hb.Buffer()
     buf.add_str(txt)
     buf.guess_segment_properties()

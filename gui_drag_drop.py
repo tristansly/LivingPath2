@@ -13,7 +13,10 @@ def changeOrder(widget1, widget2, initial):
     for g in main.groups :
         for l in g.layers :
             if l.frame is widget2 :
-                l.change_order( widget1.grid_info()['column'] //2 , widget1.grid_info()['row'] )
+                col = widget1.grid_info()['column'] //2
+                row = widget1.grid_info()['row']
+                if row is 0 : row += 1  # dont take "outline" layer position
+                l.change_order( col , row )
                 return None
     frame.grid(row=initial['row'], column=initial['column'])
     print('ALERT DRAG N DROP LOST')
@@ -27,13 +30,13 @@ def on_click(event):
         grid_info = frame.grid_info()
         clone = clone_widget(frame, frame.master)
         clone.grid(row=frame.grid_info()['row'], column=frame.grid_info()['column'] )
-        print('CLICK : frame ', frame)
         btn.bind("<B1-Motion>", lambda event:drag_motion(event, frame, start))
         btn.bind("<ButtonRelease-1>", lambda event:drag_release(event, frame, clone, grid_info))
+        print('CLICK : frame ', frame)
 
     # j'ai cru que c'etait ça qui fait bugger les slider et en fait nan... est ce que ça sert à qqchose ce unbind ?
-    # else:
-    #     gui.gui_zone.unbind("<ButtonRelease-1>")
+    else:
+        gui.gui_zone.unbind("<ButtonRelease-1>")
 
 
 def drag_motion(event, frame, start):
@@ -48,15 +51,14 @@ def drag_release(event, frame, clone, grid_info):
     x, y = gui.gui_zone.winfo_pointerxy()
     target = gui.gui_zone.winfo_containing(x, y)
     target_frame = target.master
-    # print('-RELEASE : frame ', frame)
+    print('-RELEASE : frame ', frame)
     print('-RELEASE : target_frame ', target_frame)
 
-    if target_frame.master is frame.master and frame is not target_frame :
+    if target_frame.master is frame.master and target_frame is not frame : # target is not outline
         changeOrder(target_frame, frame, grid_info)
-        # print("SWAP LAYERS :", target_frame.grid_info() )
-    elif target in [ g.pad_frame for g in main.groups ] :
-        changeOrder(target, frame, grid_info)
+        print("SWAP LAYERS :", target_frame )
     else :
+        print("SWAP ABORTED :", target_frame )
         frame.grid(row=grid_info['row'], column=grid_info['column'])
 
 def on_enter(event):

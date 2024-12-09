@@ -16,9 +16,11 @@ import pprint
 
 def pen_to_img(pen, font, g): # has to be FreeTypePen
     gs = font.getGlyphSet()
-    height = font['OS/2'].usWinAscent + font['OS/2'].usWinDescent + 2*utils.margin
-    width = gs[g].width + 2*utils.margin
-    img = pen.image(width=width,height=height,transform=Offset(utils.margin,font['OS/2'].usWinDescent+2*utils.margin))
+    s = 1/ (font['head'].unitsPerEm /1000) # some font are more than 1000 u/em
+    height = font['OS/2'].usWinAscent*s + font['OS/2'].usWinDescent*s + 2*utils.margin
+    width = gs[g].width*s + 2*utils.margin
+    img = pen.image(width=width,height=height,transform=(s,0,0,s,utils.margin, font['OS/2'].usWinDescent*s +2*utils.margin))
+    img.save('test.png')
     return ImageOps.invert(img.getchannel('A'))
 # -------------------------------------------------------------------------------------------
 

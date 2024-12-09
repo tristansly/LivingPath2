@@ -34,8 +34,8 @@ class Layer(Plugin):
         gui.Slider(frame, layer=s, max=15, min=0, ini=0.0,format='%0.1f', name='line_threshold' ).pack(anchor='w')
         gui.Slider(frame, layer=s, max=180,  name='corner_threshold', ini=100).pack(anchor='w')
 
-        gui.Slider(frame, layer=s, max=100,  name='i_dot', ini=50).pack(anchor='w', pady=(25,0))
-        gui.Slider(frame, layer=s, max=180,  name='angle', ini=0).pack(anchor='w')
+        gui.Slider(frame, layer=s, max=99,  name='add_i_dot', ini=40).pack(anchor='w', pady=(25,0))
+        gui.Slider(frame, layer=s, max=180,  name='i_dot_angle', ini=0).pack(anchor='w')
 
 
     def run(s, img):
@@ -83,11 +83,10 @@ class Layer(Plugin):
 
         circles = cv2.HoughCircles(img,cv2.HOUGH_GRADIENT,1,40, param1=50,param2=50,minRadius=40,maxRadius=100)
 
-
         if circles is not None:
             circles = np.uint16(np.around(circles))
             for i in circles[0,:]:
                 cv2.circle(img,(i[0],i[1]),i[2]+5,255,-1) # cache white circle
-                cv2.ellipse(img,(i[0],i[1]), (i[2]-s.i_dot, i[2]), s.angle,0,360,0,-1)
+                cv2.ellipse(img,(i[0],i[1]), (i[2]-s.add_i_dot, i[2]), s.i_dot_angle,0,360,0,-1)
                 print("circle diticted")
         return img

@@ -12,18 +12,17 @@ import PIL
 import math, os
 import string
 import copy
-
 import pprint
 
 plugins, names, groups = [], [], []
 layer, over_layer = None, None
-current_glyph = 'g'
+current_glyph = 'a'
 root = None
 font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 font_origin = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 tmp_font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
 hbfont = None
-img = PIL.Image.new("L", (200, 200)) # ini img
+img = PIL.Image.new("L", (200, 200),255) # ini img
 
 from time import perf_counter
 def time(msg):
@@ -36,35 +35,34 @@ def time(msg):
     last_time = perf_counter()
 
 def get_current_img( key, visual_info=True, compute=True ):
-    time(None)
     global img
     if compute :
+        # time(None)
         for g in groups: # apply algos to pixels
-            img = glyph_to_img_outline(key, font, g)
+            out = glyph_to_img_outline(key, font, g)
             for l in g.layers:
                 if l.active :
-                    img = l.run_and_save(img)
-            if g.n > 0 : img = operator_img(img, prev_img, g.op)
-            prev_img = img
-        time("algo")
+                    out = l.run(out)
+                    if key is current_glyph : l.save(out) # dont save if txt preview
+            if g.n > 0 : out = operator_img(out, prev_img, g.op)
+            prev_img = out
+        # time("algo")
+        if key is current_glyph : img = out # save img if not txt preview
+    else : out = img
 
-    if params.display_points and visual_info :
-        path = vectorization( img )
-        time("vecto")
-        path_to_font(path, key, tmp_font) # .002 sec
-        img = draw_points(path, img)
+    if params.display_paths and visual_info :
+        out = draw_paths(vectorization( out ), out)
+        # time("vecto")
     if params.display_rules and visual_info :
-        img = draw_rules(img, key, font )
-    time("end")
-    out = img
+        out = draw_rules(out, key, font )
+    # time("end")
     if visual_info and over_layer :
         mask = PIL.ImageOps.invert(over_layer.img).point(lambda i: i//3)
         out = out.convert('RGB')
         out.paste((80,160,255), (0,0), mask )
-        print(over_layer.name)
     return out
 
-def process_to_path(args):
+def process_to_path(args): # only used with pool ?
     (key, param, groups, font) = args
     for g in groups: # apply algos to pixels
         img = glyph_to_img_outline(key, font, g)
@@ -76,7 +74,7 @@ def process_to_path(args):
 
 
 import multiprocessing as multi
-def text_to_font(txt, out_font, char_to_glyph=True):
+def text_to_font(txt, out_font, char_to_glyph=True, title='Progress'):
     if char_to_glyph : # remove glyphs allready computed
         txt = utils.get_used_glyphs(txt, font, hbfont)
         gui_utils.used_glyphs.append('space')
@@ -85,11 +83,14 @@ def text_to_font(txt, out_font, char_to_glyph=True):
             txt = txt2
 
     time(None) # without multi
+    box = gui_utils.LoadBox(gui.root, title )
     for i, key in enumerate(txt):
-        gui.root.update()
-        gui.root.title( 'LivingPath - Computed glyphs '+str(i)+'/'+str(len(txt)) )
+        box.progress['value'] = int( (i/len(txt))*100 )
+        box.txt.set('Computed glyph :\n[' + key +"]\n"+ str(i)+'/'+str(len(txt)) )
+        gui.root.update() # gui.root.update_idletasks()
+        if box.stop : break
         path_to_font(vectorization(get_current_img(key,visual_info=False)),key, out_font)
-    gui.root.title( 'LivingPath' )
+    box.top.destroy()
     time("End without multiprocess")
 
     # time(None) # pool
@@ -104,12 +105,25 @@ def text_to_font(txt, out_font, char_to_glyph=True):
 
     gui_utils.used_glyphs += txt
 
-def process_font_export(path='', name=None, style=None ):
+def process_font_export(path='', name=None, style=None, flag='all'):
     global font
-    # gs = {k: v for k, v in font.getGlyphSet().items() if k in string.ascii_lowercase } # filter GLYPH SETS
+    isString = False
     gs = font.getGlyphSet()
-    # gs = "foudrefeuF"
-    text_to_font(gs, font, char_to_glyph=False)
+    if "all" in flag : # filter GLYPH SETS
+        pass
+    elif any(x in flag for x in gui.gs_flags):
+        glyphs = ""
+        if "punctuation" in flag : glyphs += string.punctuation
+        if "digits" in flag : glyphs += string.digits
+        if "uppercase" in flag : glyphs += string.ascii_uppercase
+        if "lowercase" in flag : glyphs += string.ascii_lowercase
+        gs = glyphs
+        isString = True
+    else:
+        gs = flag
+        isString = True
+
+    text_to_font(gs, font, char_to_glyph=isString, title="Export font")
 
     # for key in font.getGlyphSet():
     #     # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
@@ -143,19 +157,22 @@ def new_layer(i, refresh=True):
 
 def new_group():
     groups.append( Group() )
+    gui.refresh()
     print('NEW GROUP : ', layer.group.n)
 
-def del_group(n, select_last=True):
-    print('DELETE GROUP : ', n)
-    g = groups[n]
-    for l in reversed(g.layers) : g.del_layer(l.n, False)
-    if g.op_frame :   g.op_frame.destroy()
-    if g.drag_frame : g.drag_frame.destroy()
-    del groups[n]
-    for i in range(len(groups)) : groups[i].position(i)
-    if select_last :
-        if layer.group.n == n : select_layer( groups[0].layers[-1] )
-    gui.refresh()
+def del_group(grp, select_last=True):
+    if grp.n is not 0 :
+        print('DELETE GROUP : ', grp.n)
+        g = groups[grp.n]
+        for l in reversed(g.layers) : g.del_layer(l.n, False)
+        if g.op_frame :   g.op_frame.destroy()
+        if g.drag_frame : g.drag_frame.destroy()
+        del groups[grp.n]
+        for i in range(len(groups)) : groups[i].position(i)
+        if select_last :
+            if layer.group.n == grp.n : select_layer( groups[0].layers[-1] )
+        gui.refresh()
+
 
 def duplicate_layer( g=None, refresh=True ):
     if g==None : g = layer.group

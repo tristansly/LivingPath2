@@ -20,6 +20,7 @@ def global_Interface(root):
     global gui_zone, gui_para, gui_glob, notebook
     s = ttk.Style()
     s.configure('red.TFrame', background='red')
+    s.configure('none.TButton', foreground="#ccc")
     frm_style = 'Card.TFrame'
     frm_style = ''
     gui_foot = ttk.Frame(root, style=frm_style)
@@ -40,11 +41,12 @@ def global_Interface(root):
 
     gui_zone.bind_all("<Button-1>",gui_drag_drop.on_click)
 
-    gu.Checkbutton(gui_glob, name='display_points', ini=False, slow=False).pack(anchor='w', pady=(20,0))
-    b_rules = gu.Checkbutton(gui_glob, name='display_rules', ini=False, slow=False)
+    gu.Checkbutton(gui_glob, name='display_paths', ini=False).pack(anchor='w', pady=(20,0))
+    global b_rules
+    b_rules = gu.Checkbutton(gui_glob, name='display_rules', ini=False)
     b_rules.pack(anchor='w', pady=(0,20))
     s_space = gu.Slider(gui_glob, min=-150, max=250, name='letter_spacing', flag=None, ini=0 )
-    s_space.callback =  b_rules.select
+    s_space.callback = b_rules.select
     s_space.pack(anchor='w', pady=(0,20))
 
     vecto = ttk.LabelFrame(gui_glob, text="vectorization", padding=(10, 10))
@@ -52,15 +54,16 @@ def global_Interface(root):
     gu.Slider(vecto, max=1.34, name='curves_limit', format='%0.2f', ini=0.90).pack(anchor='w')
     gu.Slider(vecto, max=1.5, name='simplify_path', format='%0.2f', ini=0.45).pack(anchor='w')
     # gu.Slider(vecto, max=500, name='min' , ini=2).pack(anchor='w')
-    gu.Slider(vecto, max=2, name='accuracy', format='%0.2f' , ini=1).pack(anchor='w')
+    gu.Slider(vecto, min=0.01, max=2, name='accuracy', format='%0.2f' , ini=1).pack(anchor='w')
 
     gui_para = gu.ScrolledFrame(ctn_para, side='left' )
     gui_para.pack(side='top', fill='y', expand=True, anchor='n' )
 
     global gui_font_info
-    gui_font_info = {'name':tk.StringVar(), 'numG':tk.StringVar() }
+    gui_font_info = {'name':tk.StringVar(), 'numG':tk.StringVar(), 'unit':tk.StringVar() }
     ttk.Label(gui_info, textvariable=gui_font_info['name'] ).grid(column=0, row=0)
     ttk.Label(gui_info, textvariable=gui_font_info['numG'] ).grid(column=1, row=0)
+    ttk.Label(gui_info, textvariable=gui_font_info['unit'] ).grid(column=2, row=0)
     for widget in gui_info.winfo_children(): widget.grid(padx=20, pady=(5,10))
 
     refresh_button = ttk.Button(gui_view, text="Refresh font", width=1.2)
@@ -87,11 +90,11 @@ def global_Interface(root):
     img_txt = []
     for i in range(4):
         img_txt.append( Label(frame_txt.content, image=ImageTk.PhotoImage(main.img)) )
-        img_txt[i].pack(ipadx=0, ipady=0,  fill='x', expand=True)
+        img_txt[i].pack( ipadx=0, ipady=0,  fill='x', expand=True)
 
     gu.used_glyphs = []
     main.new_group()
-    main.new_layer(0) # test
+    # main.new_layer(0) # test
 
 
 def refresh(compute=True):
@@ -102,39 +105,41 @@ def refresh(compute=True):
 
 def refresh_txt():
     root.config(cursor="watch");
-    root.update()
+    root.update_idletasks()
     main.time(None)
-    wiki.title = "Foudre feu"
-    main.text_to_font(wiki.title, main.tmp_font)
+    main.text_to_font(wiki.title, main.tmp_font, title="Process title")
     main.time("process title")
 
-    print('\n',frame_txt.container.winfo_width(),frame_txt.canvas.winfo_width(),frame_txt.content.winfo_width(),frame_txt.yscrollbar.winfo_width())
-    # refresh_img(img_txt[0], text_titre(wiki.title, canvas.winfo_width(), 150))
-    main.time("display title")
-    refresh_img(img_txt[0], text_titre(wiki.title, frame_txt.container.winfo_width()-30, 250))
-    refresh_img(img_txt[1], text_titre(wiki.title, frame_txt.container.winfo_width()-30, 150))
-    refresh_img(img_txt[2], text_titre(wiki.title, frame_txt.container.winfo_width()-30, 70))
-    refresh_img(img_txt[3], text_titre(wiki.title, frame_txt.container.winfo_width()-30, 20))
+    print('\n',frame_txt.container.winfo_width(),
+            frame_txt.canvas.winfo_width(),
+            frame_txt.content.winfo_width(),
+            frame_txt.yscrollbar.winfo_width())
+
+    ctn_width = frame_txt.container.winfo_width()-30
+    refresh_img(img_txt[0], text_titre(wiki.title, ctn_width, 150))
     frame_txt.updateContent()
+    main.time("display title")
 
-    # canvas.pack()
+    # il n'y à rien dans wiki.start ...
+    # main.text_to_font(wiki.start, main.tmp_font, title="Process subtitle" )
+    # refresh_img(img_txt[1], text_block(wiki.start, 85, frame_txt.container.winfo_width() ))
 
-    # main.text_to_font(wiki.start, main.tmp_font )
-    # refresh_img(img_txt[1], text_block(wiki.start, 85, canvas.winfo_width() ))
+    main.text_to_font(wiki.sum, main.tmp_font, title="Process text" )
 
-    # main.text_to_font(wiki.sum, main.tmp_font )
-    # refresh_img(img_txt[2], text_block(wiki.sum, 45, canvas.winfo_width() ))
-    # refresh_img(img_txt[3], text_block_double(wiki.sum, 45, canvas.winfo_width() ))
+    refresh_img(img_txt[1], text_block(wiki.sum, 55, ctn_width ))
+    refresh_img(img_txt[2], text_block_double(wiki.sum, 45, ctn_width ))
+    main.text_to_font("Agf", main.tmp_font, title="Process text" )
+    refresh_img(img_txt[3], text_titre("Agf", ctn_width, 350))
 
     main.time("all texts")
     root.config(cursor="")
+    gu.used_glyphs.clear()
 
 def refresh_img(label, img):
     img = ImageTk.PhotoImage(img)
     label.configure( image = img )
     label.image = img
     label.update()
-    gu.used_glyphs.clear()
 
 def text_line(txt, w, h, dir='rl'):
     img = main.text_to_img_HB(txt, main.tmp_font, main.hbfont)
@@ -230,7 +235,7 @@ def load_new_font(data):
         # print('---', [k+v for k, v in main.font['CFF '].cff[0].Private.rawDict.items()] )
         # print('---', main.font['CFF '].cff[0].Private.nominalWidthX )
         # print('---', main.font['CFF '].cff[0].FullName)
-    print('--- u per em', main.font['head'].unitsPerEm) # TODO bigger fonts
+    print('--- u per em : ', main.font['head'].unitsPerEm) # TODO bigger fonts
 
     main.hbfont = hb.Font( hb.Face( hb.Blob.from_file_path(utils.path(data)) ) ) # load metric with uharfbuzz
 
@@ -241,6 +246,7 @@ def load_new_font(data):
 
     gui_font_info['name'].set( "Loaded font :  " + main.font_name + " - " + main.font_style )
     gui_font_info['numG'].set( "  " + str(main.font['maxp'].numGlyphs) + " glyphs" )
+    gui_font_info['unit'].set( " resolution " + str(main.font['head'].unitsPerEm) + " units" )
     try:
         refresh()
     except: # if droped font has no main.current_glyph
@@ -286,11 +292,11 @@ def load_new_font(data):
 
 
 def new_wiki():
-    root.config(cursor="watch"); root.update()
+    root.config(cursor="watch"); root.update_idletasks()
     wiki.get_wiki(); root.config(cursor="")
     refresh_txt()
 def set_lang(lang):
-    root.config(cursor="watch"); root.update()
+    root.config(cursor="watch"); root.update_idletasks()
     wiki.set_wiki_lang(lang); root.config(cursor="")
     refresh_txt()
 
@@ -322,9 +328,11 @@ def setup_menubar():
     menu_items['New group'].add_separator()
     menu_items['New group'].add_command( label='Duplicate group', command=main.duplicate_group )
 #----------------------------------------------------------------------------------
+gs_flags = ('all','lowercase','uppercase','digits','punctuation')
 def export_font(): # gui ask family name and style
-    result = {'Font family name': main.font_name,'Font style': main.font_style}
-    gu.TextBox(root, 'Name your font', result, selectFile_export)
+    result = {'Font family name': main.font_name,'Font style': main.font_style,
+    'combo:Glyph set': gs_flags}
+    gu.AskBox(root, 'Name your font', result, selectFile_export)
 
 def selectFile_export(data): # gui select folder to save font
     file_path = filedialog.asksaveasfilename(  title='Export Font File',
@@ -336,7 +344,7 @@ def selectFile_export(data): # gui select folder to save font
     )
     with open(file_path,'wb') as f:
         root.config(cursor="watch");
-        main.process_font_export(file_path, name=data['Font family name'], style=data['Font style'])
+        main.process_font_export(file_path, name=data['Font family name'], style=data['Font style'], flag=data['combo:Glyph set'])
         root.config(cursor="")
 
 def import_font():
@@ -385,8 +393,7 @@ def setup_root(mainRoot):
     root.bind("<Escape>", lambda x: production_esc(root))
     root.bind("<Right>", lambda x: show_glyph('next'))
     root.bind("<Left>", lambda x: show_glyph('prev'))
-    root.bind("<KeyPress-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(1) )
-    root.bind("<KeyRelease-space>", lambda e: print() if e.keysym=='Space' else check_display_points.update(0) )
+    root.bind('<Return>', lambda x: refresh_txt() )
     root.bind("<Control-e>", lambda x: export_font() ) # (MAC OS) replace Control by Meta
     root.bind("<Control-n>", lambda x: import_font() )
     root.bind("<Control-s>", lambda x: save_data.dump() )
