@@ -228,7 +228,8 @@ class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
         else: widget.unbind('<MouseWheel>')
 
     def scrollMouseWheel(self,event):
-        self.canvas.yview_scroll(int(-1*event.delta/120), 'units') # not linux proof ?
+        #self.canvas.yview_scroll(int(-1*event.delta/120), 'units') # not linux proof ?
+        self.canvas.yview_scroll(int(-1*event.delta), 'units') # mac proof
     def scrolldown(self,event): self.canvas.yview_scroll(-4, 'units')
     def scrollup(self,event): self.canvas.yview_scroll(4, 'units')
 
@@ -312,6 +313,7 @@ class LoadBox(object):
         self.top = tk.Toplevel(self.root)
         self.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
         self.top.title(title)
+        self.top.attributes("-topmost", True)
         self.root.eval(f'tk::PlaceWindow {str(self.top)} center')
         frame = ttk.Frame(self.top)
         frame.pack(fill='both', expand=True, padx=50, pady=30)

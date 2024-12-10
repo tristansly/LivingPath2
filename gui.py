@@ -361,6 +361,8 @@ def setup_root(mainRoot):
     root = mainRoot
     # utils.check_time(root)
     root.title('LivingPath')
+    root.overrideredirect(0)
+    #root.overrideredirect(0)
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
     wm, hm = ws/10, hs/10
     root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
