@@ -161,7 +161,7 @@ def new_group():
     print('NEW GROUP : ', layer.group.n)
 
 def del_group(grp, select_last=True):
-    if grp.n is not 0 :
+    if grp.n != 0 :
         print('DELETE GROUP : ', grp.n)
         g = groups[grp.n]
         for l in reversed(g.layers) : g.del_layer(l.n, False)
