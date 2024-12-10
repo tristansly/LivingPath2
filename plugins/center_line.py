@@ -5,9 +5,9 @@ import utils, path_utils
 import numpy as np
 from PIL import Image, ImageOps, ImageMath, ImageDraw
 # from numba import jit , njit
-from autotrace import Bitmap
+from autotrace import Bitmap # pip install pyautotrace
 import main
-import cv2
+import cv2 # pip install opencv-python
 
 
 class Layer(Plugin):

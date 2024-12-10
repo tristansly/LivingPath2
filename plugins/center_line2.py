@@ -4,10 +4,9 @@ import utils, path_utils
 
 import numpy as np
 from PIL import Image, ImageOps, ImageMath, ImageDraw
-# from numba import jit , njit
 
 import cv2
-import skimage.morphology as sk
+import skimage.morphology as sk  # pip install scikit-image
 
 import main
 

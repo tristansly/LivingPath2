@@ -10,6 +10,7 @@ from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops, 
 import beziers
 import uharfbuzz as hb
 import types
+from matplotlib import font_manager
 params = types.SimpleNamespace()
 import utils, path_utils
 import pprint
@@ -302,7 +303,11 @@ def draw_rules(img, g, font): # draw visual beziers with PIL
 
     return img
 
-arial = ImageFont.truetype("arial", 20)
+file = font_manager.findfont(font_manager.FontProperties(family='arial'))
+print("local gui file loaded :",file)
+arial = ImageFont.truetype(file, 20)
+# arial = ImageFont.truetype("Arial", 20)
+
 def lineLabel(draw, coord, coul, width=2, txt='', vert=None):
     draw.line(coord, coul, width)
     pos = (coord[0],coord[1]+4) if not vert else (coord[0]+8,vert-20)
