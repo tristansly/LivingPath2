@@ -292,11 +292,11 @@ def draw_rules(img, g, font): # draw visual beziers with PIL
     width = font.getGlyphSet()[g].width /s + params.letter_spacing
     m, mm = utils.margin, 35
     c = '#555' #(0, 127, 255)
-    lineLabel(draw, (0,asc, width+m+mm,asc ), c, 2, 'base line')
-    lineLabel(draw, (0,asc+des, width+m+mm,asc+des ), c, 2, 'descender')
-    lineLabel(draw, (0,cap-des-m, width+m+mm,cap-des-m ), c, 2, 'cap')
-    lineLabel(draw, (0,asc-xheight, width+m+mm,asc-xheight ), c, 2, 'xheight')
-    lineLabel(draw, (0,m, width+m+mm,m), c, 2, 'ascender')
+    lineLabel(draw, (70,asc, width+m+mm,asc ), c, 2, 'base line')
+    lineLabel(draw, (70,asc+des, width+m+mm,asc+des ), c, 2, 'descender')
+    lineLabel(draw, (70,cap-des-m, width+m+mm,cap-des-m ), c, 2, 'cap')
+    lineLabel(draw, (70,asc-xheight, width+m+mm,asc-xheight ), c, 2, 'xheight')
+    lineLabel(draw, (70,m, width+m+mm,m), c, 2, 'ascender')
 
     lineLabel(draw, (width+m,m-mm, width+m,img.height), c, 2, str(int(width*s)), vert=img.height)
     lineLabel(draw, (m,m-mm, m,img.height), c, 2, '0', vert=img.height)

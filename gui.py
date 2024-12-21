@@ -19,7 +19,7 @@ def global_Interface(root):
 
     global gui_zone, gui_para, gui_glob, notebook
     s = ttk.Style()
-    s.configure('red.TFrame', background='red')
+    s.configure('red.TFrame', background='#f00')
     s.configure('none.TButton', foreground="#ccc")
     frm_style = 'Card.TFrame'
     frm_style = ''
@@ -37,7 +37,7 @@ def global_Interface(root):
     gui_zone.pack(side='top', fill='both', expand=True, anchor='n', pady=(10,20))
     ctn_para.pack(side='left', fill='y', expand=False, anchor='sw', padx=0, pady=0)
     gui_glob.pack(side='bottom', fill=None, expand=False, anchor='sw', padx=(20,0), pady=(20,0))
-    gui_view.pack(side='left', fill='both', expand=True, anchor='w')
+    gui_view.pack(side='top', fill='both', expand=True, anchor='n', pady=5)
 
     gui_zone.bind_all("<Button-1>",gui_drag_drop.on_click)
 
@@ -66,25 +66,32 @@ def global_Interface(root):
     ttk.Label(gui_info, textvariable=gui_font_info['unit'] ).grid(column=2, row=0)
     for widget in gui_info.winfo_children(): widget.grid(padx=20, pady=(5,10))
 
-    refresh_button = ttk.Button(gui_view, text="Refresh font", width=1.2)
-    refresh_butto2 = ttk.Button(gui_view, text="↺", width=1.2)
-    refresh_button.pack(side="top", anchor="ne")
-    refresh_butto2.pack(side="right", anchor="ne")
-    refresh_button.config( command = refresh_txt )
-    refresh_butto2.config( command = new_wiki )
+    refresh_button = ttk.Button(root, text="Refresh font", width=1.2, command = refresh_txt)
+    refresh_butto2 = ttk.Button(root, text="↺",            width=1.2, command = new_wiki)
+    refresh_button.place(in_=gui_view, relx=1.0, rely=0, x=-70, anchor="ne")
+    refresh_butto2.place(in_=gui_view, relx=1.0, rely=0, x=-30, anchor="ne")
+    # refresh_button.( command = refresh_txt )
+    # refresh_butto2.config( command = new_wiki )
 
     global frame_txt
-    frame_txt = gu.ScrolledFrame(gui_view, side='right')
-    frame_txt.pack(side='right', fill='both', expand=True,  anchor='e' )
-
     global img_letter
+    frame_ltr = ttk.Frame(gui_view, style=frm_style)
+    frame_txt = gu.ScrolledFrame(gui_view, side='right', speed=70)
+    frame_txt.grid(row=0,column=1, sticky='ewns')
+    frame_ltr.grid(row=0,column=0, sticky='ewns')
+    gui_view.columnconfigure(0, weight=1, uniform='a')
+    gui_view.columnconfigure(1, weight=1, uniform='a')
+
     img = ImageTk.PhotoImage(main.img)
-    img_letter = Label(gui_view, image=img)
-    img_letter.pack(ipadx=0, ipady=0, side="left", fill='both', expand=False)
+    img_letter = Label(frame_ltr, image=img)
+    img_letter.pack(side = 'left')
+
+    frame_ltr.bind('<MouseWheel>', gu.scroll_letter)
+    frame_ltr.bind('<Button-1>', lambda x: show_glyph("next") )
+    frame_ltr.bind('<Button-3>', lambda x: show_glyph("prev") )
     img_letter.bind('<MouseWheel>', gu.scroll_letter)
     img_letter.bind('<Button-1>', lambda x: show_glyph("next") )
     img_letter.bind('<Button-3>', lambda x: show_glyph("prev") )
-    # img_letter.config(cursor="sb_h_double_arrow")
 
     global img_txt
     img_txt = []

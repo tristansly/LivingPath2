@@ -30,7 +30,7 @@ def ftoutline_contour(outline, layer, gs=None, offset=(1,0,0,1,0,0), opened=Fals
     stroker = ft.Stroker()
     width, linecap, join, limit =  layer.outline_width, layer.outline_cap if opened else ft.FT_STROKER_LINECAP_BUTT, layer.outline_join, layer.outline_join_limit
     coef = 70
-    stroker.set(width*coef, linecap, join, limit)
+    stroker.set(width*20, linecap, join, limit)
     if not layer.outline and width>100 :  stroker.set( (width-100)*coef, linecap, join, limit)
     if not layer.outline and width<=100 : stroker.set( (100-width)*coef, linecap, join, limit)
     stroker.parse_outline(outline, opened)

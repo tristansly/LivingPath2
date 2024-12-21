@@ -93,6 +93,7 @@ class LockSliders(ttk.Frame):
 class Checkbutton(ttk.Frame):
     def __init__(s, context, layer=None, name='', ini=False, slow=False, callback=None):
         super(Checkbutton, s).__init__(context)
+        s.context = context
         s.callback = callback
         s.name = name.replace(' ', '_')
         s.layer = font_utils.params if layer == None else layer
@@ -100,7 +101,7 @@ class Checkbutton(ttk.Frame):
         if not hasattr(s.layer, s.name) : s.set_attach_val(ini) # set ini only at layer init
         s.var.set( s.get_attach_val() )
         s.check = ttk.Checkbutton( s, text=name.replace('_',' ') if not slow else name.replace('_', ' ')+'  ⏳', variable=s.var )
-        s.check.configure(command = s.update)
+        s.check.configure(command=s.update, takefocus=0)
         s.check.grid(column=0, row=0, sticky=tk.W)
 
     def update(s, val='undefined'):
@@ -178,74 +179,76 @@ def get_img(name, size=None):
 #----------------------------------------------------------------------------------
 
 class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
-    def __init__( self, parent, side='right', axis='y', *args, **kwargs):
-        self.container = tk.Frame(parent)
-        self.canvas = tk.Canvas( self.container, *args, **kwargs )
-        self.content = tk.Frame(self.canvas)
-        self.parent = parent
-        self.side = side
-        self.xscrollbar = None
-        self.yscrollbar = None
+    def __init__( s, parent, side='right', axis='y', speed=15, *args, **kwargs):
+        s.container = ttk.Frame(parent)
+        s.canvas = tk.Canvas( s.container, *args, **kwargs)
+        s.content = ttk.Frame(s.canvas)
+        s.parent = parent
+        s.root = parent.winfo_toplevel()
+        s.side = side
+        s.speed = speed
+        s.xscrollbar = None
+        s.yscrollbar = None
         if axis == 'y' or axis == 'xy' or axis == 'yx' or axis == 'both':
-            self.yscrollbar = ttk.Scrollbar( self.container, orient='vertical', command=self.canvas.yview)
+            s.yscrollbar = ttk.Scrollbar( s.container, orient='vertical', command=s.canvas.yview)
         if axis == 'x' or axis == 'xy' or axis == 'yx' or axis == 'both':
-            self.xscrollbar = ttk.Scrollbar( self.container, orient='horizontal', command=self.canvas.xview)
-        self.root = parent.winfo_toplevel()
-        self.canvas.create_window( (0,0), window=self.content, anchor='nw')
-        # if self.yscrollbar != None: # Dont bind scroll wheel unless y is an axis of this scrollframe
-        self.root.bind("<Configure>", self.resize)
+            s.xscrollbar = ttk.Scrollbar( s.container, orient='horizontal', command=s.canvas.xview)
+        s.canvas.create_window( (0,0), window=s.content, anchor='nw')
+        s.root.bind("<Configure>", s.resize)
 
 
-    def updateContent(self):
-        self.content.update()
+    def updateContent(s):
+        s.content.update()
 
-        if self.yscrollbar != None :
-            self.yscrollbar.pack( side=self.side,  fill='y', padx=(5,5) )
-            # self.canvas.configure( yscrollcommand=self.yscrollbar.set, scrollregion="0 0 0 %s" % self.content.winfo_height() )
-            self.canvas.configure( yscrollcommand=self.yscrollbar.set, scrollregion=self.canvas.bbox("all") )
-            if self.canvas.yview() == (0.0, 1.0) : # content fit container
-                if self.side=="left": self.yscrollbar.place(width=0, height=0) # hide
-                [self.UnBindMouseWheel(x) for x in [self.content,self.canvas,self.container]]
+        if s.yscrollbar != None :
+            s.yscrollbar.pack( side=s.side,  fill='y', padx=(5,5) )
+            # s.canvas.configure( yscrollcommand=s.yscrollbar.set, scrollregion="0 0 0 %s" % s.content.winfo_height() )
+            s.canvas.configure( yscrollcommand=s.yscrollbar.set, scrollregion=s.canvas.bbox("all"), yscrollincrement=s.speed )
+            if s.canvas.yview() == (0.0, 1.0) : # content fit container
+                if s.side=="left": s.yscrollbar.place(width=0, height=0) # hide
+                [s.UnBindMouseWheel(x) for x in [s.content,s.canvas,s.container]]
             else :
-                # self.yscrollbar.pack_forget()
-                if self.side=="left": self.yscrollbar.place(anchor="nw", width=20, height=self.container.winfo_height()) # show
-                [self.BindMouseWheel(x) for x in [self.content,self.canvas,self.container]]
-                self.bindChildren( self.content)
+                # s.yscrollbar.pack_forget()
+                if s.side=="left": s.yscrollbar.place(anchor="nw", width=20, height=s.container.winfo_height()) # show
+                [s.BindMouseWheel(x) for x in [s.content,s.canvas,s.container]]
+                s.bindChildren( s.content)
 
-        self.canvas.pack( side='top', fill='both', expand=True, padx=(20,0) if self.side=="left" else (0,0) )
-        self.container.update()
-        # self.resize()
+        s.canvas.pack( side='top', fill='x', expand=True, padx=(20,0) if s.side=="left" else (0,0) )
+        s.container.update()
+        s.resize()
 
-    def BindMouseWheel(self,widget):
-        if self.root.call('tk', 'windowingsystem') == 'x11':
-            widget.bind('<Button-4>',self.scrolldown)
-            widget.bind('<Button-5>',self.scrollup)
-        else: widget.bind('<MouseWheel>',self.scrollMouseWheel)
-    def UnBindMouseWheel(self,widget):
-        if self.root.call('tk', 'windowingsystem') == 'x11':
+    def BindMouseWheel(s, widget):
+        if s.root.call('tk', 'windowingsystem') == 'x11':
+            widget.bind('<Button-4>',s.scrolldown)
+            widget.bind('<Button-5>',s.scrollup)
+        else: widget.bind('<MouseWheel>',s.scrollMouseWheel)
+    def UnBindMouseWheel(s, widget):
+        if s.root.call('tk', 'windowingsystem') == 'x11':
             widget.unbind('<Button-4>')
             widget.unbind('<Button-5>')
         else: widget.unbind('<MouseWheel>')
 
-    def scrollMouseWheel(self,event):
-        #self.canvas.yview_scroll(int(-1*event.delta/120), 'units') # not linux proof ?
-        self.canvas.yview_scroll(int(-1*event.delta), 'units') # mac proof
-    def scrolldown(self,event): self.canvas.yview_scroll(-4, 'units')
-    def scrollup(self,event): self.canvas.yview_scroll(4, 'units')
+    def scrollMouseWheel(s,e):
+        if e.delta > 100 or e.delta < -100 : # detect windows scrolling style
+            s.canvas.yview_scroll( int(-1*e.delta/120), 'units' ) # windows proof
+        else :
+            s.canvas.yview_scroll( int(-1*e.delta),     'units' ) # mac proof
+    def scrolldown(s,e): s.canvas.yview_scroll( -1*(e.delta/120), 'units' ) # linux
+    def scrollup(s,e):   s.canvas.yview_scroll(  1*(e.delta/120), 'units' ) # linux
 
-    def bindChildren(self,widget):
+    def bindChildren(s,widget):
         children = widget.winfo_children()
         if len(children) != 0:
             for child in enumerate(children):
-                self.BindMouseWheel(child[1])
-                self.bindChildren(child[1])
+                s.BindMouseWheel(child[1])
+                s.bindChildren(child[1])
 
-    def grid(self,*args, **kwargs): self.container.grid(*args,**kwargs)
-    def pack(self,*args, **kwargs): self.container.pack(*args,**kwargs)
+    def grid(s,*args, **kwargs): s.container.grid(*args,**kwargs)
+    def pack(s,*args, **kwargs): s.container.pack(*args,**kwargs)
 
-    def resize(self,*args):
-        height = min( [self.content.winfo_height(), self.parent.winfo_height()-10 ] )
-        self.canvas.configure( height=height, width=self.content.winfo_width() )
+    def resize(s,*args):
+        height = min( [s.content.winfo_height(), s.parent.winfo_height()-10 ] )
+        s.canvas.configure( height=height, width=s.content.winfo_width() )
 def scroll_letter(e):
     if e.delta > 0 : gui.show_glyph('prev')
     if e.delta < 0 : gui.show_glyph('next')
