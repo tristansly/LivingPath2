@@ -306,7 +306,7 @@ def load_new_font(data):
         try:
             l = language.Language.match(k)
             a = checkGlyph.supports_language( l.part3 , decomposed=False)
-            combo.append( (k, re.sub(r'\([^)]*\)','',l.name), hg_langs[l.part3]['speakers'], a) )
+            combo.append( (k, re.sub(r'\([^)]*\)','',l.name), hg_langs[l.part3]['speakers'] if hg_langs[l.part3]['speakers'] else 0, a) )
             if a : counter += 1
         except Exception as e:
             pass

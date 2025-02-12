@@ -13,9 +13,9 @@ class Layer(Plugin):
         l = gui.LockSliders( frame, True,
             dict(max=200, ini=30, layer=s, name='blur_width'),
             dict(max=200, ini=30, layer=s, name='blur_height') )
-        l.pack(sticky='nw')
+        l.pack(anchor='nw')
 
-        c = gui.Slider(frame, max=200, ini=150, layer=s, name='threshold_val'); c.pack(anchor='nw')
+        c = gui.Slider(frame, max=200, ini=150, layer=s, name='threshold'); c.pack(anchor='nw')
 
         gui.Checkbutton(frame, layer=s, ini=False, name='only_round_edges',
             callback=partial(gui.switch,c,l.s2) ).pack(anchor='nw')
@@ -25,7 +25,7 @@ class Layer(Plugin):
     def run(s, img):
         if (not s.only_round_edges):
             img = img.filter( ImageFilter.GaussianBlur(radius = (s.blur_width,s.blur_height) ) )
-            img = img.point( lambda p: 255 if p > s.threshold_val else 0 ) # threshold 128
+            img = img.point( lambda p: 255 if p > s.threshold else 0 ) # threshold 128
         if (s.only_round_edges):
             img = cv2.medianBlur( np.asarray(img),
                 utils.constrain(math.floor(s.blur_width), 0,145) *2+1  )

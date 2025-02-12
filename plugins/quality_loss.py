@@ -17,8 +17,8 @@ class Layer(Plugin):
         ).pack(anchor='nw')
 
         gui.Slider(frame, min=0, max=4, ini=1, layer=s, name='interpolation').pack(anchor='nw')
-        gui.Slider(frame, min=0, max=10, ini=3, layer=s, name='sharpen').pack(anchor='nw')
-
+        gui.Slider(frame, min=0, max=10, ini=3, layer=s, name='sharpen').pack(anchor='nw', pady=(20,0))
+        gui.Slider(frame, min=0, max=255, ini=127, layer=s, name='threshold').pack(anchor='nw')
 
     def run(s, img):
         size = img.size
@@ -36,10 +36,10 @@ class Layer(Plugin):
 
 
         img = cv2.resize(img, size, interpolation = interpo[s.interpolation])
-        img = np.where(img > 127, 255, 0) # fast threshold
+        #img = np.where(img > 127, 255, 0) # fast threshold
 
-        img = Image.fromarray(img)
-        img = img.convert('L')
+        img = Image.fromarray(img, mode="L")
+        img = img.point( lambda p: 255 if p > s.threshold else 0 ) # threshold 128
 
         # img = img.resize((size))
         return img
