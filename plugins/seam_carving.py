@@ -16,15 +16,18 @@ class Layer(Plugin):
 
     def gui(s, frame):
 
-        gui.Slider(frame, max=100, ini=70, layer=s, name='stretch width').grid(column=0, row=0, sticky='ew')
-        gui.Slider(frame, max=100, ini=50, layer=s, name='stretch height').grid(column=0, row=1, sticky='ew')
-        gui.Slider(frame, min=1, max=100, ini=30, layer=s, name='resolution', slow=True).grid(column=0, row=2, sticky='ew')
+        gui.LockSliders( frame, False,
+            dict(max=100, min=0, ini=70, layer=s, name='stretch width'),
+            dict(max=100, min=0, ini=50, layer=s, name='stretch_height')
+        ).pack(anchor='nw')
 
-        gui.Checkbutton(frame, layer=s, name='preserve_shape', ini=False).grid(column=0, row=3, sticky='W')
-        gui.Checkbutton(frame, layer=s, name='reverse_gravity', ini=False).grid(column=0, row=4, sticky='W')
+        gui.Slider(frame, min=1, max=100, ini=30, layer=s, name='resolution', slow=True).pack(anchor='nw')
 
-        gui.Slider(frame, min=1, max=5, ini=1.8, layer=s, format='%0.2f', name='zoom').grid(column=0, row=5, sticky='ew')
-        gui.Slider(frame, min=-1, max=1, ini=-0.5, layer=s, format='%0.2f', name='correct_ratio').grid(column=0, row=6, sticky='ew')
+        gui.Checkbutton(frame, layer=s, name='preserve_shape', ini=False).pack(anchor='nw')
+        gui.Checkbutton(frame, layer=s, name='reverse_gravity', ini=False).pack(anchor='nw')
+
+        gui.Slider(frame, min=1, max=5, ini=1.8, layer=s, format='%0.2f', name='zoom').pack(anchor='nw')
+        gui.Slider(frame, min=-1, max=1, ini=-0.5, layer=s, format='%0.2f', name='correct_ratio').pack(anchor='nw')
 
 
     def run(s, img):

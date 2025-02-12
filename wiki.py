@@ -20,11 +20,10 @@ def get_wiki():
     art = rand(list(articles.values()))
     if art is not None:
         title = art["title"]
-        start = "start" # art.start
+        start = art["start"] # art.start
         sum = art["summary"].replace('\n',' ')
-        print("WIKI : " + art["title"] )
+        print("WIKI : ", start[0:60] )
         # print("WIKI : " + art.displaytitle )
-        print(start[0:60])
     if old == title : get_wiki()
 
 def get_wiki_langs():

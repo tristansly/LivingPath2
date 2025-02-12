@@ -25,9 +25,11 @@ class Group():
         for i in range(5) :
             s.ico_on.append( gui_utils.get_img('op-on-'+str(i)+'.png', (20,20)) )
             s.ico_off.append( gui_utils.get_img('op-off-'+str(i)+'.png', (20,20)) )
-            s.gui_op.append( ttk.Checkbutton( s.op_frame, width=1.2, style='no_indicatoron.TCheckbutton',
-                command = partial(s.set_op, i), image=s.ico_off[i], compound="left", takefocus=False) )
-            s.gui_op[i].grid( row=i, column=0 )
+            s.gui_op.append( ttk.Checkbutton( s.op_frame, style='no_indicatoron.TCheckbutton',takefocus=False,
+                command = partial(s.set_op, i), image=s.ico_off[i]) )
+            s.gui_op[i].grid( row=i, column=0, pady=0, ipady=0 )
+            s.gui_op[i].bind('<Enter>',  partial(s.onEnter, i) )
+            s.gui_op[i].bind('<Leave>',  partial(s.onLeave, i) )
         s.gui_op[s.op].config( image=s.ico_on[s.op] )
 
         print("new group position : ", s.n)
@@ -68,10 +70,9 @@ class Group():
     def position(s, n):
         s.n = n
         for i, layer in enumerate(s.layers) :
-            layer.frame.grid( column=n*2, row=i, padx=15, pady=4, sticky='' )
-            # layer.group = s
+            layer.set_main_frame()
 
-        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2)-1, row=0, sticky='', rowspan='20' )
+        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2)-1, row=0, sticky='n', rowspan='80', ipadx=0, ipady=0 )
 
     def set_op(s, op, refresh=True):
         s.op = op
@@ -81,6 +82,10 @@ class Group():
 
     def img(s,img):
         gui.refresh_img(s.img, img)
+
+    def onEnter(s, i, e): s.gui_op[i]['image'] = s.ico_on[i]
+    def onLeave(s, i, e):
+        if s.op != i: s.gui_op[i]['image'] = s.ico_off[i]
 
     def gost(s):
         b = object.__new__(Group)
@@ -100,14 +105,21 @@ class Layer(Plugin):
         super(Layer, s).__init__()
 
     def gui(s, frame):
-        gui_utils.Checkbutton(frame, layer=s, name='outline',                   ini=False ).grid(column=0, row=0, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=200, name='outline_width',         ini=100   ).grid(column=0, row=1, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=3, name='outline_join',            ini=2     ).grid(column=0, row=2, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=300, name='outline_join_limit', ini=160).grid(column=0, row=3, sticky='ew')
+        gui_utils.Checkbutton(frame, layer=s, name='outline',                ini=False ).pack(anchor='w')
+        gui_utils.Slider(frame, layer=s, max=200, name='outline_width',      ini=100   ).pack(anchor='w')
 
-        gui_utils.Slider(frame, layer=s, max=200, name='dots_distance', ini=100).grid(column=0, row=4, sticky='ew')
-        gui_utils.Slider(frame, layer=s, max=200, name='dots_size', ini=10).grid(column=0, row=5, sticky='ew')
+        s.gui_join = gui_utils.Optionbutton(frame, layer=s, nbr=3, ini=2, pos='inline', name='corner_join', img_name='join' )
+        s.gui_join.callback = partial(s.set_limit, s.gui_join )
+        s.gui_join.pack(anchor='w', pady=(25,0))
 
+        s.gui_limit_join= gui_utils.Slider(frame, layer=s, max=160, name='corner_join_limit', ini=100)
+        s.gui_limit_join.pack(anchor='w')
+
+
+    def set_limit(s,x):
+        print(x.var)
+        if int(x.var) == 2 : gui_utils.switch(s.gui_limit_join, flag=True)
+        else :              gui_utils.switch(s.gui_limit_join, flag=False)
     def run(s, img):
         return img
 

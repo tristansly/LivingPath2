@@ -13,16 +13,19 @@ margin = 200
 def load_plugins():
     plugins, names = [], []
     # alternative to importlib :
-    from plugins import center_line
-    from plugins import center_line2
     from plugins import blur
-    from plugins import seam_carving
-    from plugins import quality_loss
-    from plugins import cahn_hilliard
-    from plugins import particles
-    from plugins import particles2
-    from plugins import dilate_erode
+    from plugins import polygonize
+    # from plugins import polygonize2
     from plugins import pixel
+    from plugins import quality_loss
+    from plugins import noise
+    from plugins import dilate_erode
+    from plugins import seam_carving
+    from plugins import center_line_vectors
+    from plugins import center_line_pixels
+    from plugins import particles
+    # from plugins import particles2
+    from plugins import cahn_hilliard
     from plugins import reaction_diffusion
     for i in sys.modules.keys() :
         if i.startswith("plugins.") :
@@ -47,8 +50,10 @@ def path(relative_path):
     relative_path.replace('/', os.path.sep)
 
     return os.path.join(base_path, relative_path)
+
 def path_name(path): return pathlib.Path(path).stem
 def path_ext(path): return pathlib.Path(path).suffix
+def path_dir(path): return pathlib.Path(path).parent
 
 def get_layer_attr(l):
     data = []
@@ -56,6 +61,7 @@ def get_layer_attr(l):
         value = getattr(l, attr)
         if not callable(value) and not (attr.startswith(("__","gui_")) or attr in ("group","frame","name","n") ) :
             data.append( (attr, value) )
+            # print('---', attr, type(value).__name__)
     return data
 
 def next_key(dict, key):
@@ -83,8 +89,6 @@ def prev_item(list, glyph):
 
 def mapping(x,a,b,A,B):
     return  ((x-a)/(b-a)) * (B-A) + A
-
-
 
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
@@ -139,7 +143,6 @@ def cutWords(txt):
         else :
             out.append( w + ' ' )
     return out
-
 
     ############## DRAW PIL ######################################################
 

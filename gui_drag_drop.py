@@ -8,14 +8,15 @@ import main
 import gui
 
 
-def changeOrder(widget1, widget2, initial):
+def changeOrder(widget1, widget2, initial, last_elem=False):
     print("start changeorder")
     for g in main.groups :
         for l in g.layers :
             if l.frame is widget2 :
                 col = widget1.grid_info()['column'] //2
                 row = widget1.grid_info()['row']
-                if row is 0 : row += 1  # dont take "outline" layer position
+                if row == 0 : row += 1  # dont take "outline" layer position
+                if last_elem : row = len(main.groups[col].layers)
                 l.change_order( col , row )
                 return None
     frame.grid(row=initial['row'], column=initial['column'])
@@ -24,7 +25,9 @@ def changeOrder(widget1, widget2, initial):
 def on_click(event):
     btn = event.widget
     # print('drag',btn)
-    if isinstance(btn, ttk.Button) and btn['text'] == 'lll':
+    if ( isinstance(btn, ttk.Button)
+    and btn['text'] == 'lll'
+    and not btn['style'] == 'transparent.TButton' ):
         frame = event.widget.master
         start = (event.x,event.y)
         grid_info = frame.grid_info()
@@ -34,28 +37,47 @@ def on_click(event):
         btn.bind("<ButtonRelease-1>", lambda event:drag_release(event, frame, clone, grid_info))
         print('CLICK : frame ', frame)
 
-    # j'ai cru que c'etait ça qui fait bugger les slider et en fait nan... est ce que ça sert à qqchose ce unbind ?
-    else:
-        gui.gui_zone.unbind("<ButtonRelease-1>")
-
 
 def drag_motion(event, frame, start):
     x = frame.winfo_x()+event.x-start[0]
     y = frame.winfo_y()+event.y-start[1]
+
+    current_frame = frame.place_info().get("in") # used to lift over differents frames
+    frame.place( x=x, y=y)
     frame.lift()
-    frame.place(x=x, y=y)
+
 
 def drag_release(event, frame, clone, grid_info):
     clone.destroy()
     frame.lower()
+    event.widget.unbind("<ButtonRelease-1>")
+    event.widget.unbind("<B1-Motion>")
     x, y = gui.gui_zone.winfo_pointerxy()
     target = gui.gui_zone.winfo_containing(x, y)
-    target_frame = target.master
-    print('-RELEASE : frame ', frame)
-    print('-RELEASE : target_frame ', target_frame)
+    itself = None
 
-    if target_frame.master is frame.master and target_frame is not frame : # target is not outline
-        changeOrder(target_frame, frame, grid_info)
+    if target : itself = target.master # to check if target == moved frame
+
+    target_frame = None if not target else target.master
+
+
+    last_elem = False # if target is outside try target column
+    if ( not target_frame or target_frame.master is not frame.master or target_frame is frame ):
+        print('not BUTTON')
+        last_elem = True
+        target = gui.gui_zone.winfo_containing(x, frame.master.winfo_rooty()+5)
+
+    target_frame = None if not target else target.master
+
+    print('frame', frame)
+    print('target', gui.gui_zone.winfo_containing(x, y).master)
+
+    if ( target_frame
+    and target_frame.master is frame.master
+    and target['style'] != 'cover.TFrame'
+    and frame is not itself
+    and target_frame is not frame ): # target is not outline
+        changeOrder(target_frame, frame, grid_info, last_elem=last_elem)
         print("SWAP LAYERS :", target_frame )
     else :
         print("SWAP ABORTED :", target_frame )
@@ -113,6 +135,7 @@ def clone_widget(widget, master=None):
         child_cloned = clone_widget(child, master=cloned)
 
     # grey cover
-    if isinstance(cloned, ttk.Frame) : ttk.Frame(cloned, style='cover.TFrame').grid(row=0,column=0, rowspan=1,columnspan=3, sticky='nsew')
+    if isinstance(cloned, ttk.Frame) :
+        ttk.Frame(cloned, style='cover.TFrame').grid(row=0,column=0, rowspan=1,columnspan=4, sticky='nsew')
 
     return cloned

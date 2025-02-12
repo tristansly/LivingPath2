@@ -1,4 +1,4 @@
-import utils, wiki
+import utils, wiki, save_data
 from font_utils import *
 import path_utils
 import gui
@@ -16,13 +16,15 @@ import pprint
 
 plugins, names, groups = [], [], []
 layer, over_layer = None, None
-current_glyph = 'a'
+current_glyph = 'g' # 'dkshade'
 root = None
-font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
-font_origin = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
-tmp_font = ttLib.TTFont(utils.path("files/1.ttf"), recalcBBoxes=False)
+font = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
+font_origin = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
+tmp_font = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
 hbfont = None
 img = PIL.Image.new("L", (200, 200),255) # ini img
+units = 1
+stop_process = False
 
 from time import perf_counter
 def time(msg):
@@ -34,47 +36,41 @@ def time(msg):
     elif msg : print( msg+':',str(perf_counter()-last_time).replace('0','-')[0:5], end='  ' )
     last_time = perf_counter()
 
-def get_current_img( key, visual_info=True, compute=True ):
+def get_current_img( key, compute=True ):
     global img
     if compute :
         # time(None)
         for g in groups: # apply algos to pixels
-            out = glyph_to_img_outline(key, font, g)
-            for l in g.layers:
-                if l.active :
-                    out = l.run(out)
-                    if key is current_glyph : l.save(out) # dont save if txt preview
+            if g.layers[0].active: # if group is active
+                out = glyph_to_img_outline(key, font, g)
+
+                for l in g.layers:
+                    if l.active :
+                        out = l.run(out)
+                        if key is current_glyph : l.save(out) # dont save if txt preview
+            else: out = PIL.Image.new("L", (img.width, img.height),255)# if group is not active
             if g.n > 0 : out = operator_img(out, prev_img, g.op)
             prev_img = out
         # time("algo")
         if key is current_glyph : img = out # save img if not txt preview
     else : out = img
 
-    if params.display_paths and visual_info :
+    if params.display_paths and gui.visual_info :
         out = draw_paths(vectorization( out ), out)
         # time("vecto")
-    if params.display_rules and visual_info :
+    if params.display_rules and gui.visual_info :
         out = draw_rules(out, key, font )
     # time("end")
-    if visual_info and over_layer :
+    if gui.visual_info and over_layer and over_layer.img and over_layer.active : # show blue gost glyph
         mask = PIL.ImageOps.invert(over_layer.img).point(lambda i: i//3)
         out = out.convert('RGB')
         out.paste((80,160,255), (0,0), mask )
     return out
 
-def process_to_path(args): # only used with pool ?
-    (key, param, groups, font) = args
-    for g in groups: # apply algos to pixels
-        img = glyph_to_img_outline(key, font, g)
-        for l in g.layers:
-            if l.active : img = l.run(img)
-        if g.n > 0 : img = operator_img(img, prev_img, g.op)
-        prev_img = img
-    return (vectorization(img, param), key)
 
 
 import multiprocessing as multi
-def text_to_font(txt, out_font, char_to_glyph=True, title='Progress'):
+def text_to_font(txt, out_font, char_to_glyph=True, title='Progress', box=True):
     if char_to_glyph : # remove glyphs allready computed
         txt = utils.get_used_glyphs(txt, font, hbfont)
         gui_utils.used_glyphs.append('space')
@@ -82,16 +78,27 @@ def text_to_font(txt, out_font, char_to_glyph=True, title='Progress'):
             txt2 = [j for j in txt if j != i]
             txt = txt2
 
-    time(None) # without multi
-    box = gui_utils.LoadBox(gui.root, title )
+    # time(None) # without multi
+    if box: box = gui_utils.LoadBox(gui.root, title )
     for i, key in enumerate(txt):
-        box.progress['value'] = int( (i/len(txt))*100 )
-        box.txt.set('Computed glyph :\n[' + key +"]\n"+ str(i)+'/'+str(len(txt)) )
-        gui.root.update() # gui.root.update_idletasks()
-        if box.stop : break
-        path_to_font(vectorization(get_current_img(key,visual_info=False)),key, out_font)
-    box.top.destroy()
-    time("End without multiprocess")
+        if box:
+            if box.stop or globals()['stop_process'] : globals()['stop_process']=True; break
+            box.progress['value'] = int( (i/len(txt))*100 )
+            box.txt.set('Computed glyph :\n[' + key +"]\n"+ str(i)+'/'+str(len(txt)) )
+            gui.root.update() # gui.root.update_idletasks()
+
+        global current_glyph
+        old_current_glyph = current_glyph[:]
+        current_glyph = key[:]
+        gui.visual_info=False
+        try: path_to_font(vectorization(get_current_img(key)),key, out_font)
+        except Exception as e: print(key,'error',e)
+        gui.visual_info=True
+        current_glyph = old_current_glyph[:]
+        gui_utils.used_glyphs.append(key)
+    if box: box.top.destroy()
+    # time("End")
+    out_font = copy.deepcopy(font_origin)
 
     # time(None) # pool
     # gost_groups = [g.gost() for g in groups]
@@ -103,7 +110,17 @@ def text_to_font(txt, out_font, char_to_glyph=True, title='Progress'):
     #     path_to_font(r[0], r[1], out_font)
     # time('Pool[ glyph: '+str(len(txt))+' process: '+str(utils.constrain(len(txt),2,multi.cpu_count()-1))+']')
 
-    gui_utils.used_glyphs += txt
+
+# def process_to_path(args): # only used with pool
+#     (key, param, groups, font) = args
+#     for g in groups: # apply algos to pixels
+#         img = glyph_to_img_outline(key, font, g)
+#         for l in g.layers:
+#             if l.active : img = l.run(img)
+#         if g.n > 0 : img = operator_img(img, prev_img, g.op)
+#         prev_img = img
+#     return (vectorization(img, param), key)
+
 
 def process_font_export(path='', name=None, style=None, flag='all'):
     global font
@@ -125,18 +142,11 @@ def process_font_export(path='', name=None, style=None, flag='all'):
 
     text_to_font(gs, font, char_to_glyph=isString, title="Export font")
 
-    # for key in font.getGlyphSet():
-    #     # if font["glyf"][glyph].isComposite() : return None # only with simple Glyphs
-        # if True: # key in list( set(txt) ):
-        #     print(key)
-        # else:
-        #     print(key, end=' ')  # check uncomputed glyph
-    # if font['glyf'] : font['maxp'].recalc(font)
 
+    # if font['glyf'] : font['maxp'].recalc(font)
     rename_font(font, name, style )
     font.save( utils.path( path )  )
     font = copy.deepcopy(font_origin)
-    time("Font saved : "+ path)
 
 def select_layer( selected ):
     global layer
@@ -198,9 +208,10 @@ def main():
     gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
     gui.root.config(cursor="watch");
     gui.global_Interface(gui.root)
-    wiki.get_wiki_langs()
-    wiki.set_wiki_lang('fr')
-    gui.load_new_font(utils.path("files/1.otf"))
+    try:                   gui.load_new_font( utils.path(save_data.readParamFile(1)) )
+    except Exception as e: gui.load_new_font( utils.path("files/1.otf") )
+    gui.show_glyph('next'); gui.show_glyph('prev') # regularize current glyph if not in font
+    gui_utils.used_glyphs = list(font.getGlyphSet().keys())
     gui.root.config(cursor="")
 
     gui.root.mainloop()

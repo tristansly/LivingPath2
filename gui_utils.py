@@ -5,6 +5,9 @@ import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, Entry
 import inspect
 from functools import partial
+used_glyphs = []
+
+
 
 class Slider(ttk.Frame):
     def __init__(s, context, size=200, min=0,max=100, layer=None, name='', format="%d", flag='', ini=0, slow=False, callback=None):
@@ -21,13 +24,16 @@ class Slider(ttk.Frame):
         s.slider_var = tk.DoubleVar()
         s.slider = ttk.Scale(s, from_=min, to_=max, length=size,
             orient='horizontal', style='Tick.TScale', variable=s.slider_var )
-        s.slider.set( s.get_attach_val() )
+        s.slider_var.set( s.get_attach_val() )
         s.slider.configure(command = s.update)
-        # s.slider.bind('<ButtonRelease-1>', s.update_eco)
+        s.slider.bind('<Button-1>', s.onclick)
+        # s.slider.bind('<ButtonRelease-1>', s.update_eco) # unused
         s.slider.grid(column=0, row=1, sticky=tk.W)
 
         s.title = ttk.Label(s, text = name.replace('_',' ') if not slow else name.replace('_', ' ')+'  ⏳' )
         s.title.grid(column=0, row=0, sticky=tk.W)
+        s.increment = 2
+
 
     def update(s, event):
         s.val.configure(text=s.get())
@@ -53,6 +59,10 @@ class Slider(ttk.Frame):
     def get(s):
         return s.format % float( s.slider.get() )
     def switch(s): switch(s)
+    def onclick(s, e): # disable click on slider ( that caused bug with heavy computing load )
+        if s.slider.identify(e.x, e.y) == 'Horizontal.TickScale.trough': return 'break'
+        else: return None
+
 
 class LockSliders(ttk.Frame):
     def __init__(s, context, ini, slider1, slider2):
@@ -64,10 +74,11 @@ class LockSliders(ttk.Frame):
         s.name = s.s1.name+s.s2.name
         s.ico_on = get_img('lock-on.png', (20,50))
         s.ico_off = get_img('lock-off.png', (20,50))
-        s.b = ttk.Checkbutton( s, width=1.2, style='no_indicatoron.TCheckbutton',
-                command=s.toggle, compound="left", takefocus=False)
+        s.b = ttk.Checkbutton( s, style='no_indicatoron.TCheckbutton', command=s.toggle, takefocus=False)
         gui.root.update()
         s.b.grid(row=0, column=1, rowspan=3, sticky='s', pady=(0,3))
+        s.b.bind('<Enter>', s.onEnter )
+        s.b.bind('<Leave>', s.onLeave )
         if hasattr(s.layer, s.name) : s.lock = not getattr( s.layer, s.name )
         else : s.lock = not ini # set ini only at layer init
         s.toggle()
@@ -88,7 +99,8 @@ class LockSliders(ttk.Frame):
         s.s2.val.configure(text=s.s1.get()) # update label
         s.s2.set_attach_val() # update attached layer val
     def switch(s, flag=None): switch(s.s1,s.s2,s.b, flag=flag)
-
+    def onEnter(s, e): s.b['image'] = s.ico_off if s.lock else s.ico_on
+    def onLeave(s, e): s.b['image'] = s.ico_on if s.lock else s.ico_off
 
 class Checkbutton(ttk.Frame):
     def __init__(s, context, layer=None, name='', ini=False, slow=False, callback=None):
@@ -130,16 +142,18 @@ class Optionbutton(ttk.Frame):
         s.layer = font_utils.params if layer == None else layer
         s.name = name.replace(' ', '_')
         if img_name : name = img_name
-        s.label = ttk.Label(s, text = s.name+" : ")
+        s.label = ttk.Label(s, text = s.name.replace('_',' ')+" : ")
         s.label.grid(column=0, row=0, sticky=tk.W, padx=0 )
         s.callback = callback
         s.ico_off, s.ico_on, s.b = [], [], []
         for i in range(nbr) :
             s.ico_on.append( get_img(name+'-on-'+str(i)+'.png', (20,20)) )
             s.ico_off.append( get_img(name+'-off-'+str(i)+'.png', (20,20)) )
-            s.b.append( ttk.Checkbutton( s, width=1.2, style='no_indicatoron.TCheckbutton',
-                command=partial(s.set,i), compound="left", takefocus=False ) )
-            s.b[i].grid( row=0, column=i+1 )
+            s.b.append( ttk.Checkbutton(s, style='no_indicatoron.TCheckbutton',
+                command=partial(s.set,i), takefocus=False ) )
+            s.b[i].grid( row=0, column=i+1, padx=(0,10) )
+            s.b[i].bind('<Enter>',  partial(s.onEnter, i) )
+            s.b[i].bind('<Leave>',  partial(s.onLeave, i) )
 
         if hasattr(s.layer, s.name) : ini = getattr(s.layer, s.name) # set ini only at layer init
         s.set(ini, refresh=False)
@@ -151,6 +165,9 @@ class Optionbutton(ttk.Frame):
         if s.callback : s.callback()
         if refresh: gui.refresh()
 
+    def onEnter(s, i, e): s.b[i]['image']=s.ico_on[i]
+    def onLeave(s, i, e):
+        if s.var != i: s.b[i]['image']=s.ico_off[i]
 
 #----------------------------------------------------------------------------------
 
@@ -174,7 +191,7 @@ class Separator(ttk.Separator):
 #----------------------------------------------------------------------------------
 def get_img(name, size=None):
     img = Image.open(path('files/theme/'+name))
-    if size: img = img.resize(size, Image.HAMMING)
+    if size: img = img.resize(size, Image.Resampling.BOX)
     return ImageTk.PhotoImage(img)
 #----------------------------------------------------------------------------------
 
@@ -213,7 +230,7 @@ class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
                 [s.BindMouseWheel(x) for x in [s.content,s.canvas,s.container]]
                 s.bindChildren( s.content)
 
-        s.canvas.pack( side='top', fill='x', expand=True, padx=(20,0) if s.side=="left" else (0,0) )
+        s.canvas.pack( side='top', fill='both', expand=True, padx=(20,0) if s.side=="left" else (0,0) )
         s.container.update()
         s.resize()
 
@@ -262,76 +279,85 @@ def scroll_letter(e):
 
 class AskBox(object):
     root = None
-    def __init__(self, root, title, data=None, callback=None):
+    def __init__(s, root, title, data=None, callback=None, btn1='Export', btn2='Cancel'):
         """ data = <sequence> (dictionary, key) to associate with user input
         (providing a sequence for data creates an entry for user input) """
-        self.root = root
-        self.top = tk.Toplevel(self.root)
-        self.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
-        self.top.title(title)
-        self.root.eval(f'tk::PlaceWindow {str(self.top)} center')
-        self.callback = callback
-
-        frame = ttk.Frame(self.top)
+        s.root = root
+        s.top = tk.Toplevel(s.root)
+        s.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+        s.top.title(title)
+        s.root.eval(f'tk::PlaceWindow {str(s.top)} center')
+        s.callback = callback
+        frame = ttk.Frame(s.top)
         frame.pack(fill='both', expand=True, padx=50, pady=50)
 
-        self.entries = {}
+        s.entries = {}
         for key, val in data.items():
             if (key.startswith('combo:')):
                 label = ttk.Label(frame, text=key[6:])
                 label.pack(fill='x', expand=True, padx=0, pady=(20,0))
-                self.entries[key] = ttk.Combobox(frame, values=val)
-                self.entries[key].pack(fill='x', expand=True, pady=10)
-                self.entries[key].current(0)
+                s.entries[key] = ttk.Combobox(frame, values=val)
+                s.entries[key].pack(fill='x', expand=True, pady=10)
+                s.entries[key].current(0)
+            elif (key.startswith('check:')):
+                s.entries[key] = tk.IntVar()
+                check = ttk.Checkbutton(frame, text=key[6:], variable=s.entries[key])
+                check.pack(fill='x', expand=True, pady=(20,0))
+                s.entries[key].set(val)
+            elif (key.startswith('label:')):
+                label = ttk.Label(frame, text=val)
+                label.pack(fill='x', expand=True, padx=0, pady=(20,20))
             else :
                 label = ttk.Label(frame, text=key)
                 label.pack(fill='x', expand=True, padx=0, pady=(20,0))
-                self.entries[key] = ttk.Entry(frame)
-                self.entries[key].pack(fill='x', expand=True, pady=10)
-                self.entries[key].insert(0, val)
+                s.entries[key] = ttk.Entry(frame)
+                s.entries[key].pack(fill='x', expand=True, pady=10)
+                s.entries[key].insert(0, val)
 
-        b_submit = ttk.Button(frame, text='Export')
-        b_submit['command'] = lambda: self.entry_to_dict(data)
+        b_submit = ttk.Button(frame, text=btn1)
+        b_submit['command'] = lambda: s.entry_to_dict(data)
         b_submit.pack(side='left', padx=0, pady=(20,0))
 
-        b_cancel = ttk.Button(frame, text='Cancel')
-        b_cancel['command'] = self.top.destroy
+        b_cancel = ttk.Button(frame, text=btn2)
+        b_cancel['command'] = s.top.destroy
         b_cancel.pack(side='left', padx=(20,0), pady=(20,0))
-        self.top.bind('<Return>', lambda event=None: b_submit.invoke() )
-        self.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
+        s.top.bind('<Return>', lambda event=None: b_submit.invoke() )
+        s.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
 
-    def entry_to_dict(self, data):
-        for key, val in data.items():
-            entry = self.entries[key].get()
-            if entry:
-                data[key] = entry
-        self.top.destroy()
-        self.callback(data)
+    def entry_to_dict(s, data):
+        if s.callback:
+            for key, val in data.items():
+                entry = s.entries[key].get()
+                if entry:
+                    data[key] = entry
+            s.top.destroy()
+            s.callback(data)
+        else: s.top.destroy()
 
 class LoadBox(object):
     root = None
-    def __init__(self, root, title):
+    def __init__(s, root, title):
         """ Loading bar """
-        self.root = root
-        self.top = tk.Toplevel(self.root)
-        self.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
-        self.top.title(title)
-        self.top.attributes("-topmost", True)
-        self.root.eval(f'tk::PlaceWindow {str(self.top)} center')
-        frame = ttk.Frame(self.top)
+        s.root = root
+        s.top = tk.Toplevel(s.root)
+        s.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+        s.top.title(title)
+        s.top.attributes("-topmost", True)
+        s.root.eval(f'tk::PlaceWindow {str(s.top)} center')
+        frame = ttk.Frame(s.top)
         frame.pack(fill='both', expand=True, padx=50, pady=30)
 
-        self.txt = tk.StringVar()
-        ttk.Label(frame, textvariable=self.txt).pack(fill='x', expand=True, padx=0, pady=(0,0))
+        s.txt = tk.StringVar()
+        ttk.Label(frame, textvariable=s.txt).pack(fill='x', expand=True, padx=0, pady=(0,0))
 
-        self.progress = ttk.Progressbar( frame, value=0, length=100, mode="determinate" )
-        self.progress.pack(fill='x', expand=True, padx=0, pady=(20,0))
+        s.progress = ttk.Progressbar( frame, value=0, length=100, mode="determinate" )
+        s.progress.pack(fill='x', expand=True, padx=0, pady=(20,0))
 
-        self.stop = False
+        s.stop = False
         b_cancel = ttk.Button(frame, text='Skip')
-        b_cancel['command'] = self.cancel
+        b_cancel['command'] = s.cancel
         b_cancel.pack(side='bottom', padx=50, pady=(20,20))
-        self.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
+        s.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
 
-    def cancel(self):
-        self.stop = True
+    def cancel(s):
+        s.stop = True

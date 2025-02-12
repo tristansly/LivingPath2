@@ -14,6 +14,7 @@ from matplotlib import font_manager
 params = types.SimpleNamespace()
 import utils, path_utils
 import pprint
+import copy
 
 
 def glyph_to_img(font, glyph): # unused
@@ -25,38 +26,14 @@ def glyph_to_img(font, glyph): # unused
 
 def glyph_to_img_outline(glyph, in_font, group):
     gs = in_font.getGlyphSet()
+    if glyph not in gs : # garde fou
+        return Image.new("L", (500, 1000),255)
     pen = FreeTypePen( gs )
     gs[glyph].draw(pen)
-    l = group.layers[0]
-
-    # mathplotlib to manip path : check Path.circle, Path.to_polygons
-    path = beziers.path.BezierPath.fromFonttoolsGlyph(in_font, glyph)
-    # path = path[0].dash(lineLength = 0.1, gapLength = 0.2)
-    points = []
-    for curve in path :
-        # for step in np.linspace(0,1,dist,endpoint=True) :
-        # for step in [x/l.dots_distance for x in range(int(l.dots_distance))] :
-
-        # curve = curve.offset(beziers.point.Point(10,10), rotateVector=False)
-        rest = l.dots_distance
-        for seg in curve.asSegments() :
-            size = seg.length
-            for position in range(int(l.dots_distance-rest), int(size), l.dots_distance) :
-                points.append( seg.pointAtTime(position/size) )
-                lastPos = position
-            rest = size - lastPos
-                # print(round(step,3), int(curve.lengthAtTime(step)) )
-
     outline = ft.Outline( pen.outline() )
-    pen = path_utils.ftoutline_contour( outline, group.layers[0], glyph )
+    u = 1/ (in_font['head'].unitsPerEm /1000)
+    pen = path_utils.ftoutline_contour( outline, group.layers[0], glyph, units=u )
     img = path_utils.pen_to_img( pen, in_font, glyph )
-
-    # test vecto
-    # draw = ImageDraw.Draw(img)
-    # for p in points : utils.ellipse(l.dots_size, p.x, p.y, "red", draw)
-    # poly = [(p.x,img.width-p.y) for p in points]
-    # draw.polygon(poly, fill ="white", outline ="blue")
-    # del draw
     return img.convert('L')
 
 def move_to_reverse(a, ctx):
@@ -89,7 +66,7 @@ def glyph_to_font_outline(g, in_font, font, group):
     tpen = TransformPen(pen, (1, 0, 0, 1, 0, 0))
 
     stroker = ft.Stroker()
-    width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.outline_join, l.outline_join_limit*1000
+    width, linecap, join, limit =  l.outline_width, ft.FT_STROKER_LINECAP_BUTT, l.angle_join, l.angle_join_limit*1000
     stroker.set(width*20, linecap, join, limit)
     if not l.outline and width>100 :  stroker.set( (width-100)*20, linecap, join, limit)
     if not l.outline and width<=100 : stroker.set( (100-width)*20, linecap, join, limit)
@@ -143,7 +120,6 @@ def path_to_font(path, glyph, font, path_type="potrace"):
         cs = pen.getCharString()
         cs.compile()
         font['CFF '].cff[0].CharStrings[glyph].bytecode = cs.bytecode
-
         font['CFF '].cff[0].CharStrings[glyph].calcBounds(gs) # not sure if useful
 
     # print( gs[glyph].width , font.getGlyphSet()[glyph].width ,font['hmtx'][glyph][0] )
@@ -181,7 +157,19 @@ def text_to_img_PIL(txt):
     d.text((0, 200), txt, font=new_font, fill="#fff")
     return img
 
+def char_in_font(unicode_char, font):
+    '''check if a char is in font, return its glyphName'''
+    for cmap in font['cmap'].tables:
+        if cmap.isUnicode() or cmap.getEncoding() == 'utf_16_be':
+            if ord(unicode_char) in cmap.cmap:
+                # print(type(cmap))
+                auxcn = cmap.cmap[ord(unicode_char)]
+                # print(auxcn, type(auxcn))
+                return auxcn if auxcn != '' else '<nil>'
+    return ''
+
 def text_to_img_HB(text, ttfont, hbfont):
+    if  ttfont.flavor : return Image.new("L", (1, 1))
     s = 5
     # text = 'とは、主に兄妹姉以上継続'
     # takes metrics from inputed font with HB  & draw from TTFont object
@@ -201,10 +189,12 @@ def text_to_img_HB(text, ttfont, hbfont):
     buf.add_str(text)
     # buf.direction = direction
 
-    if 'space' in ttfont.getReverseGlyphMap() :   # remplacement glyph
-        buf.replacement_codepoint = hbfont.get_nominal_glyph(ord(" "))
-        buf.not_found_glyph = hbfont.get_nominal_glyph(ord(" "))
-        # buf.not_found_glyph = ttfont.getGlyphID('space')
+    try:
+        if 'space' in ttfont.getReverseGlyphMap() :   # remplacement glyph
+            buf.replacement_codepoint = hbfont.get_nominal_glyph(ord(" "))
+            buf.not_found_glyph = hbfont.get_nominal_glyph(ord(" "))
+            # buf.not_found_glyph = ttfont.getGlyphID('space')
+    except Exception as e: pass
 
     buf.guess_segment_properties()
     # try:
@@ -303,10 +293,9 @@ def draw_rules(img, g, font): # draw visual beziers with PIL
 
     return img
 
-file = font_manager.findfont(font_manager.FontProperties(family='arial'))
-print("local gui file loaded :",file)
-arial = ImageFont.truetype(file, 20)
-# arial = ImageFont.truetype("Arial", 20)
+fontFile = font_manager.findfont(font_manager.FontProperties(family='arial'))
+# print("local gui file loaded :", file)
+arial = ImageFont.truetype(fontFile, 20)
 
 def lineLabel(draw, coord, coul, width=2, txt='', vert=None):
     draw.line(coord, coul, width)
@@ -349,29 +338,94 @@ def draw_paths(path, img): # draw visual beziers with PIL
 
 # https://learn.microsoft.com/en-us/typography/opentype/spec/name#name-ids
 
+import pprint
 def rename_font(font, name, style):
     name_style = name +" "+ style
+    regular_style = style.lower() in ('regular') #, 'italic', 'bold', 'bold italic')
+    has_16, has_17, data = False, False, {}
 
     for record in font['name'].names:
         enc = record.getEncoding()
         id = record.nameID
         sys = record.platformID
-        # print(id,sys,record.platEncID,record.langID,"---", record.string.decode(enc) )
-
-        if id==1 and sys==1: record.string = name.encode(enc) # windows
-        if id==1 and sys==3: record.string = name_style.encode(enc) # mac version ?
-        if id==16: record.string = name.encode(enc) # Family name
-        if id==2 or id==17: record.string = style.encode(enc) # style
-        if id== 3 or id==5: record.string += str(';LivingPath;'+name_style).encode(enc) # unique id, version id
+        if id==16 : has_16 = True
+        if id==17 : has_17 = True
+        if sys not in data : data[sys] = record
+        # if id==1 and sys==1: record.string = name.encode(enc) # windows
+        # if id==1 and sys==3: record.string = name_style.encode(enc) # mac version ?
+        if id==1: record.string = name.encode(enc)
+        if id==2: record.string = style.encode(enc) if regular_style else 'Regular'.encode(enc)
+        if id== 3 or id==5: record.string += str('; LivingPath 1.0 - '+name_style).encode(enc) # unique id, version id
         if id== 4: record.string = name_style.encode(enc) # full name
         if id== 6: record.string = str(name+"-"+style).replace(" ","").encode(enc) # PostScript name
         # if id == 9:  # Authors names
         # if id == 12:  # Autors URLs Links
-        # if id == 16: # record.string = nameID16_string
+        if id==1  and not regular_style : record.string = name_style.encode(enc)
+        if id==16 and not regular_style : record.string = name.encode(enc)
+        if id==17 and not regular_style : record.string = style.encode(enc)
+        if id==16 and     regular_style : font['name'].names.remove(record)
+        if id==17 and     regular_style : font['name'].names.remove(record)
 
-        if 'CFF ' in font:
+
+    if not regular_style and (not has_16 or not has_17) :
+        for v in data.values() :
+            record = copy.deepcopy(v)
+            record.nameID = 16
+            record.string = name.encode(enc)
+            font['name'].names.append(record)
+            record = copy.deepcopy(v)
+            record.nameID = 17
+            record.string = style.encode(enc)
+            font['name'].names.append(record)
+
+    for record in font['name'].names: # font analyzer
+        enc = record.getEncoding()
+        id = record.nameID
+        sys = record.platformID
+        # print(id,sys,record.platEncID,record.langID,"---", record.string.decode(enc) )
+        # pprint.pprint(vars(record))
+    # pprint.pprint( font['name'] )
+
+    if 'CFF ' in font:
+        try:
             if 'FamilyName' in font['CFF '].cff[0].rawDict: font['CFF '].cff[0].FamilyName = name
             if 'FullName' in font['CFF '].cff[0].rawDict: font['CFF '].cff[0].FullName = name_style
             if 'Weight' in font['CFF '].cff[0].rawDict: font['CFF '].cff[0].Weight = style
+            f.cff.fontNames = str(name+"-"+style).replace(" ","")
+        except Exception as e:
+            print(e)
 
     return font
+
+
+
+#  from https://github.com/fonttools/fonttools/blob/8d3b9900976b6c77e33f899fc9e74e07dd09591a/Snippets/decompose-ttf.py
+from fontTools.ttLib import TTFont
+from fontTools.pens.recordingPen import DecomposingRecordingPen
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+import pathops
+
+def decomposeTTF(f):
+    glyfTable = f["glyf"]
+    glyphSet = f.getGlyphSet()
+
+    for glyphName in glyphSet.keys():
+        if not glyfTable[glyphName].isComposite():
+            continue
+
+        # record TTGlyph outlines without components
+        dcPen = DecomposingRecordingPen(glyphSet)
+        glyphSet[glyphName].draw(dcPen)
+
+        # replay recording onto a skia-pathops Path
+        path = pathops.Path()
+        pathPen = path.getPen()
+        dcPen.replay(pathPen)
+
+        # remove overlaps
+        path.simplify()
+
+        # create new TTGlyph from Path
+        ttPen = TTGlyphPen(None)
+        path.draw(ttPen)
+        glyfTable[glyphName] = ttPen.glyph()

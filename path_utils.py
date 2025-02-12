@@ -16,23 +16,27 @@ import pprint
 
 def pen_to_img(pen, font, g): # has to be FreeTypePen
     gs = font.getGlyphSet()
-    s = 1/ (font['head'].unitsPerEm /1000) # some font are more than 1000 u/em
+    if g not in gs : # garde fou, utile ? ou pas
+        return Image.new("L", (500, 1000),255)
+    s = 1/ (font['head'].unitsPerEm /1000) # some font are more than 1000 u/em (and main unreachable)
     height = font['OS/2'].usWinAscent*s + font['OS/2'].usWinDescent*s + 2*utils.margin
     width = gs[g].width*s + 2*utils.margin
-    img = pen.image(width=width,height=height,transform=(s,0,0,s,utils.margin, font['OS/2'].usWinDescent*s +2*utils.margin))
-    img.save('test.png')
-    return ImageOps.invert(img.getchannel('A'))
+    try:  # garde fou, utile ? ou pas
+        img = pen.image(contain=False,width=width,height=height,transform=(s,0,0,s,utils.margin, font['OS/2'].usWinDescent*s +2*utils.margin))
+    except e: return Image.new("L", (500, 1000),255)
+    img = ImageOps.invert(img.getchannel('A'))
+    return img
 # -------------------------------------------------------------------------------------------
 
-def ftoutline_contour(outline, layer, gs=None, offset=(1,0,0,1,0,0), opened=False ):
+def ftoutline_contour(outline, layer, gs=None, offset=(1,0,0,1,0,0), opened=False, units=1 ):
     pen = FreeTypePen( gs )
     tpen = TransformPen(pen, offset)
     stroker = ft.Stroker()
-    width, linecap, join, limit =  layer.outline_width, layer.outline_cap if opened else ft.FT_STROKER_LINECAP_BUTT, layer.outline_join, layer.outline_join_limit
-    coef = 70
-    stroker.set(width*20, linecap, join, limit)
-    if not layer.outline and width>100 :  stroker.set( (width-100)*coef, linecap, join, limit)
-    if not layer.outline and width<=100 : stroker.set( (100-width)*coef, linecap, join, limit)
+    width, linecap, join, limit = layer.outline_width, layer.outline_cap if opened else ft.FT_STROKER_LINECAP_BUTT, layer.corner_join, layer.corner_join_limit*1000
+    coef = 70 # outline slider coef
+    stroker.set( int(width/units*20), linecap, join, limit)
+    if not layer.outline and layer.outline_width>100 :  stroker.set( int((width-100)*coef/units), linecap, join, limit)
+    if not layer.outline and layer.outline_width<=100 : stroker.set( int((100-width)*coef/units), linecap, join, limit)
     stroker.parse_outline(outline, opened)
 
     n_points, n_contours = stroker.get_counts()
@@ -60,7 +64,9 @@ def conic_to(a, b, ctx):    ctx.curveTo( pt(a), pt(b), pt(b))
 def cubic_to(a, b, c, ctx): ctx.curveTo(  pt(a), pt(b), pt(c) )
 def pt(a):
     coef = 64
-    return (a.x//coef, a.y//coef)  # not sure about // : int or float
+    return (utils.constrain(a.x//coef,-4000,4000),
+            utils.constrain(a.y//coef,-4000,4000))  # constrain aberations
+            # not sure about // : int or float
 # -------------------------------------------------------------------------------------------
 
 def autotrace_to_ftoutline( vector, offset=(1,0,0,1,0,0) ):
@@ -109,7 +115,7 @@ def resize_path( path, s ):
     return path
 
 
-def path_to_array( path ):
+def path_to_array( path ): # unused for now
     arr = []
     for curve in path:
         cur = []
