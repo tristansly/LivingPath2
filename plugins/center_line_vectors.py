@@ -43,7 +43,6 @@ class Layer(Plugin):
     def run(s, img):
         originSize = img.size
 
-        img.save('test.jpg')
         if s.add_i_dot != 0 :
             img = s.detect_points(img);
 
