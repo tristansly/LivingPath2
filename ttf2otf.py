@@ -13,7 +13,7 @@ from fontTools.ttLib import TTFont, TTLibError
 from fontTools.ttLib.scaleUpem import scale_upem
 from cffsubr import subroutinize as subr
 import typing as t
-import pathops
+import pathops # pip install skia-pathops
 
 # from https://github.com/fonttools/fonttools/blob/main/Snippets/ttf2otf.py
 
