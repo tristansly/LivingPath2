@@ -12,6 +12,7 @@ import uharfbuzz as hb
 from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
 from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
 import re
+import platform
 from copy import deepcopy
 import pprint
 visual_info = False
@@ -353,17 +354,18 @@ def setup_menubar():
         menu_items[key] = Menu(menubar)
         menubar.add_cascade( label=key, menu=menu_items[key] )
 
-    menu_items['File'].add_command(label='Import font',command=import_font,accelerator='Ctrl+N' )
-    menu_items['File'].add_command(label='Export font',command=export_font,accelerator='Ctrl+E')
+    ctrl = "Meta" if platform.system() == "Darwin" else "Ctrl"
+    menu_items['File'].add_command(label='Import font',command=import_font,accelerator=ctrl+'+N' )
+    menu_items['File'].add_command(label='Export font',command=export_font,accelerator=ctrl+'+E')
     menu_items['File'].add_separator()
-    menu_items['File'].add_command(label='Save project',command=save_data.dump,accelerator='Ctrl+S')
-    menu_items['File'].add_command(label='Open project',command=save_data.load,accelerator='Ctrl+O' )
+    menu_items['File'].add_command(label='Save project',command=save_data.dump,accelerator=ctrl+'+S')
+    menu_items['File'].add_command(label='Open project',command=save_data.load,accelerator=ctrl+'+O' )
     menu_items['Help'].add_command( label='Welcome')
     menu_items['Help'].add_command( label='About...')
     for i in range(len(main.plugins)) :
         menu_items['New layer'].add_command( label=main.names[i].replace('_',' '), command=partial(main.new_layer,i) )
     menu_items['New layer'].add_separator()
-    menu_items['New layer'].add_command(label='Duplicate layer',command=main.duplicate_layer,accelerator='Ctrl+V')
+    menu_items['New layer'].add_command(label='Duplicate layer',command=main.duplicate_layer,accelerator=ctrl+'+V')
     menu_items['New group'].add_command(label='New group',command=main.new_group)
     menu_items['New group'].add_separator()
     menu_items['New group'].add_command(label='Duplicate group',command=main.duplicate_group)
@@ -474,13 +476,14 @@ def setup_root(mainRoot):
     root.bind("<Left>", lambda x: show_glyph('prev'))
     root.bind('<Return>', lambda x: new_wiki() )
     root.bind('<space>', lambda x: refresh_txt() )
-    root.bind("<Control-n>", lambda x: import_font() )
-    root.bind("<Control-e>", lambda x: export_font() ) # (MAC OS) replace Control by Meta
-    root.bind("<Control-s>", lambda x: save_data.dump() )
-    root.bind("<Control-o>", lambda x: save_data.load() )
-    root.bind("<Control-v>", lambda x: main.duplicate_layer() )
-    root.bind("<Control-g>", lambda x: main.new_group() )
-    root.bind("<Control-Shift-G>", lambda x: main.duplicate_group() )
+    ctrl = "Meta" if platform.system() == "Darwin" else "Control"
+    root.bind("<"+ctrl+"-n>", lambda x: import_font() )
+    root.bind("<"+ctrl+"-e>", lambda x: export_font() )
+    root.bind("<"+ctrl+"-s>", lambda x: save_data.dump() )
+    root.bind("<"+ctrl+"-o>", lambda x: save_data.load() )
+    root.bind("<"+ctrl+"-v>", lambda x: main.duplicate_layer() )
+    root.bind("<"+ctrl+"-g>", lambda x: main.new_group() )
+    root.bind("<"+ctrl+"-Shift-G>", lambda x: main.duplicate_group() )
 
     root.bind("<Key>", key)
 
