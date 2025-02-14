@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image, ImageOps, ImageMath, ImageDraw
 
 import cv2
-import skimage.morphology as sk  # pip install scikit-image
+from skimage.morphology import medial_axis, skeletonize  # pip install scikit-image
 
 import main
 
@@ -59,11 +59,11 @@ class Layer(Plugin):
 
         if s.mode in (0,3) : img = img.astype(np.bool_)
 
-        if s.mode == 0 : img = sk.skeletonize(img, method='lee') # 0.23
-        # if s.mode == 0 : img = sk.skeletonize(img, method='zhang') # 0.12 fastest
+        if s.mode == 0 : img = skeletonize(img, method='lee') # 0.23 minimalist
+        # if s.mode == 0 : img = skeletonize(img, method='zhang') # 0.12 fastest
         if s.mode == 1 : img = cv2.ximgproc.thinning(img, thinningType=cv2.ximgproc.THINNING_ZHANGSUEN) # 0.15 ressemble au lee
         if s.mode == 2 : img = cv2.ximgproc.thinning(img, thinningType=cv2.ximgproc.THINNING_GUOHALL) # 0.2
-        if s.mode == 3 : img = sk.medial_axis(img) # 0.15 calld topological skeleton
+        if s.mode == 3 : img = medial_axis(img) # 0.15 calld topological skeleton
         if s.mode == 4 : img = s.cv_custo_skeleton(img,0)
         if s.mode == 5 : img = s.cv_custo_skeleton(img,1)
 

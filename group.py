@@ -7,7 +7,6 @@ from base_plugin import Plugin
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from functools import partial
 
-import cairo
 from io import BytesIO
 from PIL import Image, ImageTk
 import pprint

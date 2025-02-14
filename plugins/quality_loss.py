@@ -1,6 +1,5 @@
 import gui_utils as gui
 from base_plugin import Plugin
-import seam_carving
 import numpy as np
 from PIL import Image
 import cv2

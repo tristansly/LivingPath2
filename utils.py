@@ -3,7 +3,7 @@ import pathlib
 import importlib
 import ctypes
 import contextlib
-import freetype as ft
+import freetype as ft # freetype-py
 import numpy as np
 import uharfbuzz as hb
 from datetime import datetime

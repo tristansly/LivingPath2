@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, filedialog
 from tkinterdnd2 import DND_FILES
 from functools import partial
-from iso639 import language  # iso639 and not python-iso639
+from iso639 import language  # python-iso639 and not iso639 
 import uharfbuzz as hb
 from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
 from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
@@ -476,7 +476,7 @@ def setup_root(mainRoot):
     root.bind("<Left>", lambda x: show_glyph('prev'))
     root.bind('<Return>', lambda x: new_wiki() )
     root.bind('<space>', lambda x: refresh_txt() )
-    ctrl = "Meta" if platform.system() == "Darwin" else "Control"
+    ctrl = "Command" if platform.system() == "Darwin" else "Control"
     root.bind("<"+ctrl+"-n>", lambda x: import_font() )
     root.bind("<"+ctrl+"-e>", lambda x: export_font() )
     root.bind("<"+ctrl+"-s>", lambda x: save_data.dump() )

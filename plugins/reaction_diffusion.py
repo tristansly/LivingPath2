@@ -4,10 +4,10 @@ import utils
 
 import numpy as np
 from PIL import Image, ImageOps
-from numba import jit , njit
+from numba import jit , njit # reelement utile ?
 from time import time
 
-@njit
+@njit # reelement utile ?
 def draw(U, V, nextImgA, nextImgB, fk, w,h ):
 
     for x in range (w):

@@ -1,6 +1,6 @@
 import freetype as ft # pip install freetype-py
 import numpy as np
-import potracer # pip install potracer
+from potrace import Bitmap # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -93,7 +93,7 @@ def vectorization(img, params=params):
     height = int( float(img.size[1]) * float(wpercent) )
     img = img.resize((int(width),int(height)), Image.Resampling.LANCZOS)
     data = np.asarray(img) #  PIL image to a numpy array
-    bmp = potracer.Bitmap(data) # Create a bitmap from the array
+    bmp = Bitmap(data) # Create a bitmap from the array
     path = bmp.trace( alphamax=params.curves_limit, opticurve=True, opttolerance=params.simplify_path) # turdsize=params.minimal_zone
 
     return path_utils.resize_path( path, 1/params.accuracy )

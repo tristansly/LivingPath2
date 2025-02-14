@@ -1,6 +1,5 @@
 import freetype as ft # pip install freetype-py
 import numpy as np
-import potracer # pip install potracer
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -134,23 +133,3 @@ def path_to_array( path ): # unused for now
             cur.append(seg)
         arr.append(cur)
     return arr
-
-# def array_to_path( arr ):
-#     path = potracer.Path()
-#     for cur in arr:
-#         cur = []
-#         for seg in cur:
-#             seg = []
-#             seg.append( segment.end_point.x )
-#             seg.append( segment.end_point.y )
-#             if segment.is_corner:
-#                 seg.append( segment.c.x )
-#                 seg.append( segment.c.y )
-#             else:
-#                 seg.append( segment.c1.x )
-#                 seg.append( segment.c1.y )
-#                 seg.append( segment.c2.x )
-#                 seg.append( segment.c2.y )
-#             cur.append(seg)
-#         arr.append(cur)
-#     return arr
