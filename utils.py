@@ -172,5 +172,7 @@ def new_outline(n_points, n_contours):
 
 def check_time(root):
     now = datetime.now()
-    print(now.year, now.month)
-    if now.year >= 2024 and now.month >= 10 : root.destroy()
+    y = 2025
+    m = 2 # licence max date included
+    if now.year > y or (now.year == y and now.month > m) :
+        root.destroy()

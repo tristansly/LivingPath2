@@ -48,8 +48,12 @@ def get_current_img( key, compute=True ):
                     if l.active :
                         out = l.run(out)
                         if key is current_glyph : l.save(out) # dont save if txt preview
-            else: out = PIL.Image.new("L", (img.width, img.height),255)# if group is not active
-            if g.n > 0 : out = operator_img(out, prev_img, g.op)
+                if g.n > 0 : out = operator_img(out, prev_img, g.op)
+            else:
+                if g.n > 0 : out = prev_img
+                if g.n== 0 :
+                    blk = glyph_to_img_outline(key, font, g)
+                    out = PIL.Image.new("L", (blk.width, blk.height),255)# if group is not active
             prev_img = out
         # time("algo")
         if key is current_glyph : img = out # save img if not txt preview
@@ -213,6 +217,7 @@ def main():
     gui.show_glyph('next'); gui.show_glyph('prev') # regularize current glyph if not in font
     gui_utils.used_glyphs = list(font.getGlyphSet().keys())
     gui.root.config(cursor="")
+    utils.check_time(gui.root)
 
     gui.root.mainloop()
 

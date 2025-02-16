@@ -6,6 +6,7 @@ from PIL import Image
 import PIL
 import time
 import cv2
+import seam_carving
 interpo = [cv2.INTER_AREA, cv2.INTER_BITS, cv2.INTER_BITS2, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_LINEAR, cv2.INTER_LINEAR_EXACT, cv2.INTER_NEAREST]
 kernel = np.array([ [0, -1, 0], [-1, 5, -1], [0, -1, 0] ])
 

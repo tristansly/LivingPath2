@@ -4,10 +4,10 @@ import utils
 
 import numpy as np
 from PIL import Image, ImageOps
-from numba import jit , njit # reelement utile ?
+from numba import njit
 from time import time
 
-@njit # reelement utile ?
+@njit
 def draw(U, V, nextImgA, nextImgB, fk, w,h ):
 
     for x in range (w):
@@ -43,43 +43,48 @@ class Layer(Plugin):
         gui.Checkbutton(frame, layer=s, name='invert', ini=False).grid(column=0, row=7, sticky='W')
 
     def run(s, img):
+        origin_img = img.copy()
         originSize = img.size
         img = img.resize( (int(img.width*s.size), int(img.height*s.size)), Image.NEAREST)
 
-        m = 0
-        if img.width  < 200 : m = 100-img.width//2
-        if img.height < 200 : m = 100-img.height//2
-        if m > 0 : img = ImageOps.expand(img, border=m, fill=(255))
-        w = img.height
-        h = img.width
-        arr = np.array(img.getdata())
-        img = np.reshape(arr/255, ( -1, img.width))
+        try: # does not help to prevent crash bug
+            m = 0
+            if img.width  < 200 : m = 100-img.width//2
+            if img.height < 200 : m = 100-img.height//2
+            if m > 0 : img = ImageOps.expand(img, border=m, fill=(255))
+            w = img.height
+            h = img.width
+            arr = np.array(img.getdata())
+            img = np.reshape(arr/255, ( -1, img.width))
 
-        np.random.seed(42)
-        U = np.random.normal(0.8, 0.2, size=(w, h))
-        V = np.random.normal(0.2, 0.2, size=(w, h))
-        nextImgA = np.ones ( (w, h) )
-        nextImgB = np.zeros( (w, h) )
+            np.random.seed(42)
+            U = np.random.normal(0.8, 0.2, size=(w, h))
+            V = np.random.normal(0.2, 0.2, size=(w, h))
+            nextImgA = np.ones ( (w, h) )
+            nextImgB = np.zeros( (w, h) )
 
-        t = time()
-        fkbw = np.array([s.f_black,s.f_white,s.k_black,s.k_white])
+            t = time()
+            fkbw = np.array([s.f_black,s.f_white,s.k_black,s.k_white])
 
-        fk = np.ones( (w,h,2) )
-        for x in range (w):
-            for y in range (h):
-                fk[x,y,0] = utils.mapping(img[x,y], 0,1, fkbw[0],fkbw[1] )
-                fk[x,y,1] = utils.mapping(img[x,y], 0,1, fkbw[2],fkbw[3] )
+            fk = np.ones( (w,h,2) )
+            for x in range (w):
+                for y in range (h):
+                    fk[x,y,0] = utils.mapping(img[x,y], 0,1, fkbw[0],fkbw[1] )
+                    fk[x,y,1] = utils.mapping(img[x,y], 0,1, fkbw[2],fkbw[3] )
 
-        for i in range (s.growing_time):
-            U, V, nextImgA, nextImgB = draw( U, V, nextImgA, nextImgB, fk ,w,h )
-            # U = np.clip(U, 0.0, 1.0)
-            # V = np.clip(V, 0.0, 1.0)
-        print("R&D - Time Elapsed : " + str(time() - t) )
+            for i in range (s.growing_time):
+                U, V, nextImgA, nextImgB = draw( U, V, nextImgA, nextImgB, fk ,w,h )
+                # U = np.clip(U, 0.0, 1.0)
+                # V = np.clip(V, 0.0, 1.0)
+            print("R&D - Time Elapsed : " + str(time() - t) )
 
-        img = np.clip((U - V) * 255, 0, 255)
-        img = Image.fromarray(np.uint8(img))
-        if m > 0 : img = img.crop((m, m, img.width-m, img.height-m))
-        if s.invert : img = ImageOps.invert(img)
-        img = img.resize(originSize, 1)
-        img = img.point( lambda p: 255 if p > s.threshold else 0 )
+            img = np.clip((U - V) * 255, 0, 255)
+            img = Image.fromarray(np.uint8(img))
+            if m > 0 : img = img.crop((m, m, img.width-m, img.height-m))
+            if s.invert : img = ImageOps.invert(img)
+            img = img.resize(originSize, 1)
+            img = img.point( lambda p: 255 if p > s.threshold else 0 )
+        except Exception as e:
+            img = origin_img
+            print(e)
         return img

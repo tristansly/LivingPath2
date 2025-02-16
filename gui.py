@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, filedialog
 from tkinterdnd2 import DND_FILES
 from functools import partial
-from iso639 import language  # python-iso639 and not iso639 
+from iso639 import language  # python-iso639 and not iso639
 import uharfbuzz as hb
 from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
 from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
@@ -101,7 +101,7 @@ def global_Interface(root):
     try: wiki.set_wiki_lang( save_data.readParamFile(0) )
     except: wiki.set_wiki_lang( 'en' )
     main.new_group()
-    main.new_layer(1) # test
+    # main.new_layer(11) # test
 
 
 def refresh(compute=True, clear_glyphs=True):
@@ -180,8 +180,8 @@ def text_titre(txt, w, h, dir='rl'):
     return bg
 
 def text_block(txt, txt_size, w, dir='rl' ):
-    bg = Image.new('L', (w+500, 2000), (255))
-    i, y, x, max, lh = 0, 40, 0, 0, 0
+    bg = Image.new('L', (w+500, 4000), (255))
+    i, y, x, max, lh = 0, 0, 0, 0, 0
     for word in utils.cutWords(txt) :
         img = main.text_to_img_HB(word, main.tmp_font, main.hbfont)
         img.thumbnail((3000, txt_size), Image.Resampling.LANCZOS)
@@ -193,7 +193,7 @@ def text_block(txt, txt_size, w, dir='rl' ):
             if y > bg.height-lh : break
         bg.paste(img, (x, y) )
         x += img.width
-    bg = bg.crop((0, 0, max, y+lh ))
+    bg = bg.crop((0, 0, max, y+lh+40 ))
     bg.thumbnail((w, 2000), Image.Resampling.LANCZOS)
     return bg
 
@@ -363,9 +363,12 @@ def setup_menubar():
     menu_items['Help'].add_command( label='Welcome')
     menu_items['Help'].add_command( label='About...')
     for i in range(len(main.plugins)) :
-        menu_items['New layer'].add_command( label=main.names[i].replace('_',' '), command=partial(main.new_layer,i) )
+        if "diffusion" in main.names[i] :
+            menu_items['New layer'].add_command( label="reaction-diffusion (experimental)", command=partial(main.new_layer,i) )
+        else:
+            menu_items['New layer'].add_command( label=main.names[i].replace('_',' '), command=partial(main.new_layer,i) )
     menu_items['New layer'].add_separator()
-    menu_items['New layer'].add_command(label='Duplicate layer',command=main.duplicate_layer,accelerator=ctrl+'+V')
+    menu_items['New layer'].add_command(label='Duplicate layer',command=main.duplicate_layer)# ,accelerator=ctrl+'+V')
     menu_items['New group'].add_command(label='New group',command=main.new_group)
     menu_items['New group'].add_separator()
     menu_items['New group'].add_command(label='Duplicate group',command=main.duplicate_group)
@@ -398,7 +401,8 @@ def selectPath_export(data): # gui select folder to save font
     ext = utils.path_ext(file_path)
     file_name = utils.path_name(file_path)
 
-    print(data)
+    print("file_path:", file_path)
+    print("data:", data)
     if data['check:Generate font specimen']:
         save_data.dumpFile(str(utils.path_dir(file_path))+'/'+str(file_name)+'_parameters.lvp')
     if data['check:Save .lvp parameters file']:
@@ -433,7 +437,7 @@ def setup_root(mainRoot):
     # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
     # if ws < 1500 : root.attributes("-fullscreen", True)
     # root['background'] = 'white' # for linux distro ?
-    root.iconphoto(False, ImageTk.PhotoImage(Image.open(utils.path('files/logo.png'))))
+    gu.set_icon(root)
     # root.tk.call('tk', 'scaling', 1.5)
     root.tk.call("source", utils.path("files/azure.tcl")) # theme
     root.tk.call("set_theme", "light")
@@ -489,8 +493,6 @@ def setup_root(mainRoot):
 
 def key(event): show_glyph(char=event.char)
 #----------------------------------------------------------------------------------
-
-
 
 
 if __name__ == "__main__":

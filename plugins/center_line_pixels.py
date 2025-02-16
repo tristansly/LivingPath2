@@ -33,7 +33,7 @@ class Layer(Plugin):
         opt.callback = lambda : skel.switch( opt.var in (4,5) )
 
         opt.pack(anchor='w')
-        skel.pack(anchor='w')
+        skel.pack(anchor='w', pady=(20,0))
 
         ### unused : dilate ###
         # gui.LockSliders( frame, True,

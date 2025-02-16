@@ -3,10 +3,10 @@ import font_utils, gui
 from PIL import ImageTk, Image
 import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, Entry
-import inspect
 from functools import partial
+import inspect
+import platform
 used_glyphs = []
-
 
 
 class Slider(ttk.Frame):
@@ -276,7 +276,14 @@ def scroll_letter(e):
 #     return font_utils if name == 'gui' else get_plugin(name)
 
 #----------------------------------------------------------------------------------
-
+def set_icon(widget):
+    if platform.system()=="Windows" :
+        widget.iconbitmap(default=path('files/logo2.ico'))
+    elif platform.system()=="Darwin" :
+        widget.iconphoto(False, default=ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+    else :
+        widget.iconphoto(False, default=ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+#----------------------------------------------------------------------------------
 class AskBox(object):
     root = None
     def __init__(s, root, title, data=None, callback=None, btn1='Export', btn2='Cancel'):
@@ -284,7 +291,7 @@ class AskBox(object):
         (providing a sequence for data creates an entry for user input) """
         s.root = root
         s.top = tk.Toplevel(s.root)
-        s.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+        # set_icon(s.top)
         s.top.title(title)
         s.root.eval(f'tk::PlaceWindow {str(s.top)} center')
         s.callback = callback
@@ -340,7 +347,6 @@ class LoadBox(object):
         """ Loading bar """
         s.root = root
         s.top = tk.Toplevel(s.root)
-        s.top.iconphoto(False, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
         s.top.title(title)
         s.top.attributes("-topmost", True)
         s.root.eval(f'tk::PlaceWindow {str(s.top)} center')

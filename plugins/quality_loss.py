@@ -11,8 +11,8 @@ class Layer(Plugin):
     def gui(s, frame):
 
         gui.LockSliders( frame, True,
-            dict(max=200, min=1, ini=30, layer=s, name='resolution_width'),
-            dict(max=200, min=1, ini=30, layer=s, name='resolution_height')
+            dict(max=200, min=2, ini=30, layer=s, name='resolution_width'),
+            dict(max=200, min=2, ini=30, layer=s, name='resolution_height')
         ).pack(anchor='nw')
 
         gui.Slider(frame, min=0, max=4, ini=1, layer=s, name='interpolation').pack(anchor='nw')
