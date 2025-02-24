@@ -20,3 +20,5 @@ scikit-image==0.0
 tkinterdnd2==0.4.2
 uharfbuzz==0.45.0
 Wikipedia_API==0.8.1
+skia-pathops==0.8.2
+seam-carving==1.1.0
