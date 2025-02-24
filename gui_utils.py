@@ -280,9 +280,9 @@ def set_icon(widget):
     if platform.system()=="Windows" :
         widget.iconbitmap(default=path('files/logo2.ico'))
     elif platform.system()=="Darwin" :
-        widget.iconphoto(False, default=ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+        widget.iconphoto(True, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
     else :
-        widget.iconphoto(False, default=ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+        widget.iconphoto(True, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
 #----------------------------------------------------------------------------------
 class AskBox(object):
     root = None
