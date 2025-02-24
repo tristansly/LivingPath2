@@ -345,7 +345,11 @@ def set_lang(lang):
 def production_esc(root):
     root.destroy()
 #----------------------------------------------------------------------------------
+def show_about_menu(): #function for about window
+    result = { "label:" : "about\nfull text" }
+    gu.AskBox(root, "About LivingPath", result,  btn1='ok')
 def setup_menubar():
+    root.createcommand('tkAboutDialog',show_about_menu) #set about menu
     menubar = Menu(root)
     root.config(menu=menubar)
     global menu_items
@@ -361,7 +365,7 @@ def setup_menubar():
     menu_items['File'].add_command(label='Save project',command=save_data.dump,accelerator=ctrl+'+S')
     menu_items['File'].add_command(label='Open project',command=save_data.load,accelerator=ctrl+'+O' )
     menu_items['Help'].add_command( label='Welcome')
-    menu_items['Help'].add_command( label='About...')
+    menu_items['Help'].add_command( label='About...',command=show_about_menu)
     for i in range(len(main.plugins)) :
         if "diffusion" in main.names[i] :
             menu_items['New layer'].add_command( label="reaction-diffusion (experimental)", command=partial(main.new_layer,i) )
