@@ -248,7 +248,7 @@ def drop(root,e):
     if ext.lower() == '.lvp' : save_data.load_data(e.data)
 
 def load_new_font(data):
-    if hasattr(root,'config') : root.config(cursor="watch");
+    if hasattr(root,'config') and data : root.config(cursor="watch");
     gui_font_info['name'].set("... Font Loading ..."), root.update() # _idletasks not working
 
     main.font.close()
@@ -342,14 +342,10 @@ def set_lang(lang):
     save_data.writeParamFile(lang,0)
     refresh_txt(compute=False)
 
-def production_esc(root):
-    root.destroy()
+def production_esc(root): root.destroy()
+def show_about_menu(): gu.show_about_menu(root)
 #----------------------------------------------------------------------------------
-def show_about_menu(): #function for about window
-    result = { "label:" : "about\nfull text" }
-    gu.AskBox(root, "About LivingPath", result,  btn1='ok')
 def setup_menubar():
-    root.createcommand('tkAboutDialog',show_about_menu) #set about menu
     menubar = Menu(root)
     root.config(menu=menubar)
     global menu_items
@@ -364,8 +360,9 @@ def setup_menubar():
     menu_items['File'].add_separator()
     menu_items['File'].add_command(label='Save project',command=save_data.dump,accelerator=ctrl+'+S')
     menu_items['File'].add_command(label='Open project',command=save_data.load,accelerator=ctrl+'+O' )
-    menu_items['Help'].add_command( label='Welcome')
-    menu_items['Help'].add_command( label='About...',command=show_about_menu)
+    if ctrl!="Meta": menu_items['File'].add_separator()
+    if ctrl!="Meta": menu_items['File'].add_command( label='About LivingPath',command=show_about_menu)
+    root.createcommand('tkAboutDialog',show_about_menu) #set about menu for mac
     for i in range(len(main.plugins)) :
         if "diffusion" in main.names[i] :
             menu_items['New layer'].add_command( label="reaction-diffusion (experimental)", command=partial(main.new_layer,i) )
@@ -436,8 +433,11 @@ def setup_root(mainRoot):
     #root.overrideredirect(0)
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
     wm, hm = ws/10, hs/10
-    root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
-    root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
+    # root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
+    # root.geometry("{}x{}+-7+0".format(ws-0,hs-50))
+    root.geometry("{}x{}+0+0".format(ws,hs))
+    if platform.system() != "Darwin": root.state('zoomed')
+    # root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
     # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
     # if ws < 1500 : root.attributes("-fullscreen", True)
     # root['background'] = 'white' # for linux distro ?

@@ -7,7 +7,7 @@ import freetype as ft # freetype-py
 import numpy as np
 import uharfbuzz as hb
 from datetime import datetime
-
+import tkinter as tk
 margin = 200
 
 def load_plugins():
@@ -144,7 +144,15 @@ def cutWords(txt):
             out.append( w + ' ' )
     return out
 
-    ############## DRAW PIL ######################################################
+def center_window(window):
+    window.update_idletasks()
+    width = window.winfo_width()
+    height = window.winfo_height()
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f"{width}x{height}+{x}+{y}")    ############## DRAW PIL ######################################################
 
 def ellipse(size,x,y, fill, draw):
     s = int(size/2)

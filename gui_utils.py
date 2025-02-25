@@ -5,9 +5,9 @@ import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, Entry
 from functools import partial
 import inspect
+from tkhtmlview import HTMLLabel
 import platform
 used_glyphs = []
-
 
 class Slider(ttk.Frame):
     def __init__(s, context, size=200, min=0,max=100, layer=None, name='', format="%d", flag='', ini=0, slow=False, callback=None):
@@ -283,6 +283,7 @@ def set_icon(widget):
         widget.iconphoto(True, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
     else :
         widget.iconphoto(True, ImageTk.PhotoImage(Image.open(path('files/logo.png'))))
+
 #----------------------------------------------------------------------------------
 class AskBox(object):
     root = None
@@ -293,7 +294,6 @@ class AskBox(object):
         s.top = tk.Toplevel(s.root)
         # set_icon(s.top)
         s.top.title(title)
-        s.root.eval(f'tk::PlaceWindow {str(s.top)} center')
         s.callback = callback
         frame = ttk.Frame(s.top)
         frame.pack(fill='both', expand=True, padx=50, pady=50)
@@ -330,6 +330,7 @@ class AskBox(object):
         b_cancel.pack(side='left', padx=(20,0), pady=(20,0))
         s.top.bind('<Return>', lambda event=None: b_submit.invoke() )
         s.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
+        center_window(s.top)
 
     def entry_to_dict(s, data):
         if s.callback:
@@ -349,7 +350,6 @@ class LoadBox(object):
         s.top = tk.Toplevel(s.root)
         s.top.title(title)
         s.top.attributes("-topmost", True)
-        s.root.eval(f'tk::PlaceWindow {str(s.top)} center')
         frame = ttk.Frame(s.top)
         frame.pack(fill='both', expand=True, padx=50, pady=30)
 
@@ -364,6 +364,29 @@ class LoadBox(object):
         b_cancel['command'] = s.cancel
         b_cancel.pack(side='bottom', padx=50, pady=(20,20))
         s.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
+        center_window(s.top)
 
     def cancel(s):
         s.stop = True
+
+#----------------------------------------------------------------------------------
+def show_about_menu(root):
+    top = tk.Toplevel(root)
+    top.title("About LivingPath")
+    frame = ttk.Frame(top)
+    frame.pack(fill='both', expand=True, padx=50, pady=50)
+
+    img = Image.open(path('files/logo.png'))
+    tkimage = ImageTk.PhotoImage(img)
+    label = ttk.Label(frame, image = tkimage)
+    label.image = tkimage
+    label.update()
+    label.pack()
+    # ttk.Label(frame, text="LivingPath ").pack()
+    # ttk.Label(frame, text="Generative Font Modification Software \n").pack()
+    with open(path('files/about.html')) as f:
+        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff" ).pack()
+
+    top.bind('<Escape>', lambda event=None: top.destroy() )
+    top.bind('<Return>', lambda event=None: top.destroy() )
+    center_window(top)
