@@ -297,6 +297,8 @@ class AskBox(object):
         s.callback = callback
         frame = ttk.Frame(s.top)
         frame.pack(fill='both', expand=True, padx=50, pady=50)
+        s.root.attributes("-fullscreen", False)
+        s.top.attributes('-topmost', 'true')
 
         s.entries = {}
         for key, val in data.items():
@@ -348,10 +350,12 @@ class LoadBox(object):
         """ Loading bar """
         s.root = root
         s.top = tk.Toplevel(s.root)
+        s.root.attributes("-fullscreen", False)
         s.top.title(title)
         s.top.attributes("-topmost", True)
         frame = ttk.Frame(s.top)
         frame.pack(fill='both', expand=True, padx=50, pady=30)
+
 
         s.txt = tk.StringVar()
         ttk.Label(frame, textvariable=s.txt).pack(fill='x', expand=True, padx=0, pady=(0,0))
@@ -364,7 +368,8 @@ class LoadBox(object):
         b_cancel['command'] = s.cancel
         b_cancel.pack(side='bottom', padx=50, pady=(20,20))
         s.top.bind('<Escape>', lambda event=None: b_cancel.invoke() )
-        center_window(s.top)
+        s.root.eval(f'tk::PlaceWindow {str(s.top)} center')
+
 
     def cancel(s):
         s.stop = True
@@ -372,6 +377,8 @@ class LoadBox(object):
 #----------------------------------------------------------------------------------
 def show_about_menu(root):
     top = tk.Toplevel(root)
+    root.attributes("-fullscreen", False)
+    top.attributes('-topmost', 'true')
     top.title("About LivingPath")
     frame = ttk.Frame(top)
     frame.pack(fill='both', expand=True, padx=50, pady=50)

@@ -144,7 +144,7 @@ def cutWords(txt):
             out.append( w + ' ' )
     return out
 
-def center_window(window):
+def center_window(window, resize=True):
     window.update_idletasks()
     width = window.winfo_width()
     height = window.winfo_height()
@@ -152,7 +152,10 @@ def center_window(window):
     screen_height = window.winfo_screenheight()
     x = (screen_width - width) // 2
     y = (screen_height - height) // 2
-    window.geometry(f"{width}x{height}+{x}+{y}")    ############## DRAW PIL ######################################################
+    if resize: window.geometry(f"{width}x{height}+{x}+{y}")
+    if not resize: window.geometry(f"{1}x{1}+{x}+{y}")
+
+    ############## DRAW PIL ######################################################
 
 def ellipse(size,x,y, fill, draw):
     s = int(size/2)
