@@ -363,7 +363,6 @@ def show_shortcut_menu(): gu.show_shortcut_menu(root)
 #----------------------------------------------------------------------------------
 def setup_menubar():
     menubar = Menu(root)
-    root.config(menu=menubar)
     global menu_items
     menu_items = dict.fromkeys( [ 'File', 'New layer', 'New group', 'Language' ] )
     for key, val in menu_items.items():
@@ -376,13 +375,10 @@ def setup_menubar():
     menu_items['File'].add_separator()
     menu_items['File'].add_command(label='Save project',command=save_data.dump,accelerator=ctrl+'+S')
     menu_items['File'].add_command(label='Open project',command=save_data.load,accelerator=ctrl+'+O' )
-    if ctrl!="Meta": menu_items['File'].add_separator()
-    if ctrl!="Meta": menu_items['File'].add_command( label='Shortcuts & controls',command=show_shortcut_menu)
+    menu_items['File'].add_separator()
+    menu_items['File'].add_command( label='Shortcuts & controls',command=show_shortcut_menu)
     if ctrl!="Meta": menu_items['File'].add_command( label='About LivingPath',command=show_about_menu)
-    if ctrl=="Meta": root.createcommand('tkAboutDialog',show_about_menu) #set about menu for mac
-    if ctrl=="Meta": appmenu = tk.Menu(menubar, name='apple')
-    if ctrl=="Meta": menubar.add_cascade(menu=appmenu)
-    if ctrl=="Meta": appmenu.add_command(label='Shortcuts & controls',command=show_shortcut_menu)
+    if ctrl=="Meta": root.createcommand('tkAboutDialog', show_about_menu) #set about menu for mac
     for i in range(len(main.plugins)) :
         if "diffusion" in main.names[i] :
             menu_items['New layer'].add_command( label="reaction-diffusion (experimental)", command=partial(main.new_layer,i) )
@@ -390,9 +386,10 @@ def setup_menubar():
             menu_items['New layer'].add_command( label=main.names[i].replace('_',' '), command=partial(main.new_layer,i) )
     menu_items['New layer'].add_separator()
     menu_items['New layer'].add_command(label='Duplicate layer',command=main.duplicate_layer)# ,accelerator=ctrl+'+V')
-    menu_items['New group'].add_command(label='New group',command=main.new_group)
+    menu_items['New group'].add_command(label='New group',command=main.new_group,accelerator=ctrl+'+G')
     menu_items['New group'].add_separator()
-    menu_items['New group'].add_command(label='Duplicate group',command=main.duplicate_group)
+    menu_items['New group'].add_command(label='Duplicate group',command=main.duplicate_group,accelerator=ctrl+'+Shift+G')
+    if ctrl=="Meta": root.configure(menu=menubar)
 #----------------------------------------------------------------------------------
 gs_flags = ('all','lowercase','uppercase','digits','punctuation')
 def export_font(): # gui ask family name and style

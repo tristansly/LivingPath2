@@ -383,9 +383,9 @@ class LoadBox(object):
 
 #----------------------------------------------------------------------------------
 def show_about_menu(root):
-    top = tk.Toplevel(root)
     root.attributes("-fullscreen", False)
-    top.attributes('-topmost', 'true')
+    top = tk.Toplevel(root)
+    #top.attributes('-topmost', 'true')
     top.title("About LivingPath")
     frame = ttk.Frame(top)
     frame.pack(fill='both', expand=True, padx=50, pady=50)
@@ -397,7 +397,7 @@ def show_about_menu(root):
     label.update()
     label.pack()
     with open(path('files/about.html')) as f:
-        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff" ).pack()
+        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff", takefocus=False ).pack()
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )
@@ -412,9 +412,9 @@ def show_shortcut_menu(root):
     frame.pack(fill='both', expand=True, padx=20, pady=40)
 
     with open(path('files/shortcut.html')) as f:
-        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white",height=25,width=70).pack(side='left')
+        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white", takefocus=False,height=25,width=70).pack(side='left')
     with open(path('files/shortcut2.html')) as f:
-        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white",height=25,width=70).pack(side='right')
+        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white", takefocus=False,height=25,width=70).pack(side='right')
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )
