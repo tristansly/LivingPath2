@@ -34,7 +34,10 @@ def global_Interface(root):
     gui_glob = ttk.Frame(ctn_para, style=frm_style)
     gui_view = ttk.Frame(root, style=frm_style)
 
-    ttk.Sizegrip(gui_foot).pack(side='right', anchor='se',  expand=False, padx=(0, 5), pady=(0, 5))
+    grip = ttk.Sizegrip(gui_foot)
+    grip.pack(side='right', anchor='se',  expand=False, padx=(0, 5), pady=(0, 5))
+    grip.bind('<Button-1>', lambda x: root.state('normal') )
+
     gui_foot.pack(side='bottom', fill='x', expand=True, anchor='s', pady=(5,0), padx=(10,0) )
     gui_info.pack(side='left', fill='x', expand=False, anchor='s')
     gui_zone.pack(side='top', fill='both', expand=True, anchor='n', pady=(10,20))
@@ -43,19 +46,20 @@ def global_Interface(root):
     gui_view.pack(side='top', fill='both', expand=True, anchor='n', pady=0)
 
     global b_rules, b_paths
-    b_paths = gu.Checkbutton(gui_glob, name='display_paths', ini=False)
     b_rules = gu.Checkbutton(gui_glob, name='display_rules', ini=False)
     s_space = gu.Slider(gui_glob, min=-150,max=250, name='letter_spacing',callback=b_rules.select)
-    b_paths.pack(anchor='w', pady=(20,0))
-    b_rules.pack(anchor='w', pady=(0,20))
+    b_rules.pack(anchor='w', pady=(20,20))
     s_space.pack(anchor='w', pady=(0,10))
-
-    vecto = ttk.LabelFrame(gui_glob, text="vectorization", padding=(10, 10))
-    vecto.pack(anchor='sw', padx=(0,0), pady=(0,0))
+    global vecto
+    vecto = ttk.LabelFrame(gui_glob, text="vectorization V", padding=(10, 10))
+    vecto.pack(anchor='sw', padx=(0,0), pady=(0,0), fill='both', ipady=0)
+    b_paths = gu.Checkbutton(vecto, name='display_paths', ini=False)
+    b_paths.pack(anchor='w')
     gu.Slider(vecto, min=0.01, max=2, name='accuracy', format='%0.2f' , ini=1,callback=b_paths.select).pack(anchor='w')
     gu.Slider(vecto, max=1.5, name='simplify_path', format='%0.2f', ini=0.45,callback=b_paths.select).pack(anchor='w')
     gu.Slider(vecto, max=1.34, name='curves_limit', format='%0.2f', ini=0.90,callback=b_paths.select).pack(anchor='w')
     # gu.Slider(vecto, max=500, name='min' , ini=2).pack(anchor='w')
+    close_vecto()
 
     gui_para = gu.ScrolledFrame(ctn_para, side='left', takefocus=False )
     gui_para.pack(side='top', fill='y', expand=True, anchor='n' )
@@ -70,21 +74,19 @@ def global_Interface(root):
     refresh_butto2 = ttk.Button(root, text="text",    width=1.2, command = new_wiki)
     refresh_button.place(in_=gui_view, relx=1.0, rely=0, x=-80, anchor="ne")
     refresh_butto2.place(in_=gui_view, relx=1.0, rely=0, x=-30, anchor="ne")
-    # refresh_button.( command = refresh_txt )
-    # refresh_butto2.config( command = new_wiki )
 
-    global frame_txt
-    global img_letter
+    global img_letter, frame_txt
     frame_ltr = ttk.Frame(gui_view, style=frm_style)
     frame_txt = gu.ScrolledFrame(gui_view, side='right', speed=70)
-    frame_txt.grid(row=0,column=1, sticky='ewns')
-    frame_ltr.grid(row=0,column=0, sticky='ewns')
     gui_view.columnconfigure(0, weight=1, uniform='a')
     gui_view.columnconfigure(1, weight=1, uniform='a')
+    frame_txt.grid(row=0,column=1, sticky='ewns')
+    frame_ltr.grid(row=0,column=0, sticky='ewns')
 
     img = ImageTk.PhotoImage(main.img)
     img_letter = Label(frame_ltr, image=img)
-    img_letter.pack(side = 'left')
+    # img_letter.pack(side = 'left')
+    img_letter.place(relx=.5, rely=.5, anchor="center")
 
     for w in frame_ltr, img_letter:
         w.bind('<MouseWheel>', gu.scroll_letter)
@@ -102,6 +104,19 @@ def global_Interface(root):
     except: wiki.set_wiki_lang( 'en' )
     main.new_group()
     # main.new_layer(11) # test
+
+def open_vecto(*args):
+    global vecto
+    vecto["text"]="vectorization options ˄"
+    for widget in vecto.winfo_children(): widget.pack()
+    vecto.bind('<Button-1>', close_vecto )
+def close_vecto(*args):
+    global vecto
+    vecto["text"]="vectorization options ˅"
+    for widget in vecto.winfo_children(): widget.pack_forget()
+    vecto.bind('<Button-1>', open_vecto )
+    b_paths.pack(anchor="w")
+    # ttk.Separator(vecto, orient='horizontal').pack(anchor='w', ipadx=0, ipady=0, padx=0, pady=0)
 
 
 def refresh(compute=True, clear_glyphs=True):
@@ -344,6 +359,7 @@ def set_lang(lang):
 
 def production_esc(root): root.destroy()
 def show_about_menu(): gu.show_about_menu(root)
+def show_shortcut_menu(): gu.show_shortcut_menu(root)
 #----------------------------------------------------------------------------------
 def setup_menubar():
     menubar = Menu(root)
@@ -361,8 +377,12 @@ def setup_menubar():
     menu_items['File'].add_command(label='Save project',command=save_data.dump,accelerator=ctrl+'+S')
     menu_items['File'].add_command(label='Open project',command=save_data.load,accelerator=ctrl+'+O' )
     if ctrl!="Meta": menu_items['File'].add_separator()
+    if ctrl!="Meta": menu_items['File'].add_command( label='Shortcuts & controls',command=show_shortcut_menu)
     if ctrl!="Meta": menu_items['File'].add_command( label='About LivingPath',command=show_about_menu)
-    root.createcommand('tkAboutDialog',show_about_menu) #set about menu for mac
+    if ctrl=="Meta": root.createcommand('tkAboutDialog',show_about_menu) #set about menu for mac
+    if ctrl=="Meta": appmenu = tk.Menu(menubar, name='apple')
+    if ctrl=="Meta": menubar.add_cascade(menu=appmenu)
+    if ctrl=="Meta": appmenu.add_command(label='Shortcuts & controls',command=show_shortcut_menu)
     for i in range(len(main.plugins)) :
         if "diffusion" in main.names[i] :
             menu_items['New layer'].add_command( label="reaction-diffusion (experimental)", command=partial(main.new_layer,i) )

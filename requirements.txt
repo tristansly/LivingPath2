@@ -22,3 +22,4 @@ uharfbuzz==0.45.0
 Wikipedia_API==0.8.1
 skia-pathops==0.8.2
 seam-carving==1.1.0
+brotli==1.1.0

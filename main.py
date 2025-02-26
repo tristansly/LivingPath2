@@ -189,15 +189,16 @@ def del_group(grp, select_last=True):
 
 
 def duplicate_layer( g=None, refresh=True ):
-    if g==None : g = layer.group
-    l_old = layer
-    g.new_layer(layer.ref_plugin, refresh=False)
+    if  layer.n != 0 : # do mnothing if selected layer is group path
+        if g==None : g = layer.group
+        l_old = layer
+        g.new_layer(layer.ref_plugin, refresh=False)
 
-    for name, val in utils.get_layer_attr( l_old ):
-        setattr(layer, name, val)
-    layer.gui( gui.gui_para.content )
-    select_layer(layer)
-    if refresh : gui.refresh()
+        for name, val in utils.get_layer_attr( l_old ):
+            setattr(layer, name, val)
+        layer.gui( gui.gui_para.content )
+        select_layer(layer)
+        if refresh : gui.refresh()
 
 def duplicate_group():
     g_old = layer.group

@@ -16,6 +16,7 @@ class Slider(ttk.Frame):
         s.format = format
         s.name = name.replace(' ', '_')
         s.flag = flag
+        s.ini = ini
         s.layer = font_utils.params if layer == None else layer
         if not hasattr(s.layer, s.name) : s.set_attach_val(ini) # set ini only at layer init
 
@@ -27,6 +28,8 @@ class Slider(ttk.Frame):
         s.slider_var.set( s.get_attach_val() )
         s.slider.configure(command = s.update)
         s.slider.bind('<Button-1>', s.onclick)
+        s.slider.bind('<Button-2>', lambda x: s.set_ini() )
+        s.slider.bind('<Button-3>', lambda x: s.set_ini() )
         # s.slider.bind('<ButtonRelease-1>', s.update_eco) # unused
         s.slider.grid(column=0, row=1, sticky=tk.W)
 
@@ -59,6 +62,10 @@ class Slider(ttk.Frame):
     def get(s):
         return s.format % float( s.slider.get() )
     def switch(s): switch(s)
+    def set_ini(s): # set to ini val (right click)
+        s.slider.set(s.ini)
+        s.set_attach_val(s.ini)
+        return 'break'
     def onclick(s, e): # disable click on slider ( that caused bug with heavy computing load )
         if s.slider.identify(e.x, e.y) == 'Horizontal.TickScale.trough': return 'break'
         else: return None
@@ -389,9 +396,28 @@ def show_about_menu(root):
     label.image = tkimage
     label.update()
     label.pack()
-    # ttk.Label(frame, text="LivingPath ").pack()
-    # ttk.Label(frame, text="Generative Font Modification Software \n").pack()
     with open(path('files/about.html')) as f:
+        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff" ).pack()
+
+    top.bind('<Escape>', lambda event=None: top.destroy() )
+    top.bind('<Return>', lambda event=None: top.destroy() )
+    center_window(top)
+
+def show_shortcut_menu(root):
+    top = tk.Toplevel(root)
+    root.attributes("-fullscreen", False)
+    top.attributes('-topmost', 'true')
+    top.title("LivingPath shortcuts & controls")
+    frame = ttk.Frame(top)
+    frame.pack(fill='both', expand=True, padx=50, pady=50)
+
+    img = Image.open(path('files/logo.png'))
+    tkimage = ImageTk.PhotoImage(img)
+    label = ttk.Label(frame, image = tkimage)
+    label.image = tkimage
+    label.update()
+    label.pack()
+    with open(path('files/shortcut.html')) as f:
         HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff" ).pack()
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
