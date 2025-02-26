@@ -53,7 +53,7 @@ def global_Interface(root):
     global vecto
     vecto = ttk.LabelFrame(gui_glob, text="vectorization V", padding=(10, 10))
     vecto.pack(anchor='sw', padx=(0,0), pady=(0,0), fill='both', ipady=0)
-    b_paths = gu.Checkbutton(vecto, name='display_paths', ini=False)
+    b_paths = gu.Checkbutton(vecto, name='display_paths', ini=False, slow=True)
     b_paths.pack(anchor='w')
     gu.Slider(vecto, min=0.01, max=2, name='accuracy', format='%0.2f' , ini=1,callback=b_paths.select).pack(anchor='w')
     gu.Slider(vecto, max=1.5, name='simplify_path', format='%0.2f', ini=0.45,callback=b_paths.select).pack(anchor='w')
@@ -365,7 +365,7 @@ def setup_menubar():
     menubar = Menu(root)
     root.config(menu=menubar)
     global menu_items
-    menu_items = dict.fromkeys( [ 'File', 'New layer', 'New group', 'Language', 'Help' ] )
+    menu_items = dict.fromkeys( [ 'File', 'New layer', 'New group', 'Language' ] )
     for key, val in menu_items.items():
         menu_items[key] = Menu(menubar)
         menubar.add_cascade( label=key, menu=menu_items[key] )

@@ -409,16 +409,12 @@ def show_shortcut_menu(root):
     top.attributes('-topmost', 'true')
     top.title("LivingPath shortcuts & controls")
     frame = ttk.Frame(top)
-    frame.pack(fill='both', expand=True, padx=50, pady=50)
+    frame.pack(fill='both', expand=True, padx=20, pady=40)
 
-    img = Image.open(path('files/logo.png'))
-    tkimage = ImageTk.PhotoImage(img)
-    label = ttk.Label(frame, image = tkimage)
-    label.image = tkimage
-    label.update()
-    label.pack()
     with open(path('files/shortcut.html')) as f:
-        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff" ).pack()
+        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white",height=25,width=70).pack(side='left')
+    with open(path('files/shortcut2.html')) as f:
+        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white",height=25,width=70).pack(side='right')
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )
