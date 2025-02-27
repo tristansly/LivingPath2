@@ -388,16 +388,16 @@ def show_about_menu(root):
     #top.attributes('-topmost', 'true')
     top.title("About LivingPath")
     frame = ttk.Frame(top)
-    frame.pack(fill='both', expand=True, padx=50, pady=50)
+    frame.pack(fill='both', expand=True, padx=(0,0), pady=(0,50), ipadx=0, ipady=0)
 
-    img = Image.open(path('files/logo.png'))
-    tkimage = ImageTk.PhotoImage(img)
+    img = Image.open(path('files/header.jpg'))
+    tkimage = ImageTk.PhotoImage( img.resize(tuple(i//2 for i in img.size)) )
     label = ttk.Label(frame, image = tkimage)
     label.image = tkimage
     label.update()
     label.pack()
     with open(path('files/about.html')) as f:
-        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff", takefocus=False ).pack()
+        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff", takefocus=False, height=25 ).pack()
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )
