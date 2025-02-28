@@ -415,22 +415,23 @@ def selectPath_export(data): # gui select folder to save font
         confirmoverwrite=True,
         initialfile = fullName
     )
-    root.config(cursor="watch");
-    ext = utils.path_ext(file_path)
-    file_name = utils.path_name(file_path)
+    if file_path:
+        root.config(cursor="watch");
+        ext = utils.path_ext(file_path)
+        file_name = utils.path_name(file_path)
 
-    print("file_path:", file_path)
-    print("data:", data)
-    if data['check:Generate font specimen']:
-        specimen.save( file_path, file_name, ext, ffname+' '+style, wiki.title, wiki.sum, wiki.start )
-    if data['check:Save .lvp parameters file']:
-        save_data.dumpFile(str(utils.path_dir(file_path))+'/'+str(file_name)+'_parameters.lvp')
+        print("file_path:", file_path)
+        print("data:", data)
+        if data['check:Generate font specimen']:
+            specimen.save( file_path, file_name, ext, ffname+' '+style, wiki.title, wiki.sum, wiki.start )
+        if data['check:Save .lvp parameters file']:
+            save_data.dumpFile(str(utils.path_dir(file_path))+'/'+str(file_name)+'_parameters.lvp')
 
-    gu.used_glyphs.clear()
-    main.process_font_export(file_path, name=ffname, style=style, flag=data['combo:Glyph set'])
+        gu.used_glyphs.clear()
+        main.process_font_export(file_path, name=ffname, style=style, flag=data['combo:Glyph set'])
 
-    root.config(cursor="")
-    playsound( utils.path('files/export.wav') )
+        root.config(cursor="")
+        playsound( utils.path('files/export.wav') )
 
 def import_font():
     filename = filedialog.askopenfilename(  title='Open Font file',
@@ -496,7 +497,7 @@ def setup_root(mainRoot):
     root.columnconfigure(1, weight=0)
 
     # general key control
-    root.bind("<Escape>", lambda x: production_esc(root))
+    # root.bind("<Escape>", lambda x: production_esc(root))
     root.bind("<Right>", lambda x: show_glyph('next'))
     root.bind("<Left>", lambda x: show_glyph('prev'))
     root.bind('<Return>', lambda x: new_wiki() )

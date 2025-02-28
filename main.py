@@ -73,7 +73,7 @@ def get_current_img( key, compute=True ):
 
 
 
-import multiprocessing as multi
+# import multiprocessing as multi
 def text_to_font(txt, out_font, char_to_glyph=True, title='Progress', box=True):
     if char_to_glyph : # remove glyphs allready computed
         txt = utils.get_used_glyphs(txt, font, hbfont)
@@ -83,7 +83,7 @@ def text_to_font(txt, out_font, char_to_glyph=True, title='Progress', box=True):
             txt = txt2
 
     # time(None) # without multi
-    if box: box = gui_utils.LoadBox(gui.root, title )
+    if box and len(txt)>0: box = gui_utils.LoadBox(gui.root, title )
     for i, key in enumerate(txt):
         if box:
             if box.stop or globals()['stop_process'] : globals()['stop_process']=True; break
@@ -100,7 +100,7 @@ def text_to_font(txt, out_font, char_to_glyph=True, title='Progress', box=True):
         gui.visual_info=True
         current_glyph = old_current_glyph[:]
         gui_utils.used_glyphs.append(key)
-    if box: box.top.destroy()
+    if box and len(txt)>0: box.top.destroy()
     # time("End")
     out_font = copy.deepcopy(font_origin)
 
