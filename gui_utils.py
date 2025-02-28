@@ -384,7 +384,7 @@ class LoadBox(object):
 #----------------------------------------------------------------------------------
 def show_about_menu(root):
     root.attributes("-fullscreen", False)
-    top = tk.Toplevel(root)
+    top = tk.Toplevel(root, borderwidth=0, padx=0, pady=0) # je ne suis pas arrivé à retirer le border 2px
     #top.attributes('-topmost', 'true')
     top.title("About LivingPath")
     frame = ttk.Frame(top)
@@ -395,9 +395,9 @@ def show_about_menu(root):
     label = ttk.Label(frame, image = tkimage)
     label.image = tkimage
     label.update()
-    label.pack()
+    label.pack(padx=0, pady=0, ipadx=0, ipady=0)
     with open(path('files/about.html')) as f:
-        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff", takefocus=False, height=25 ).pack()
+        HTMLLabel(frame, html=f.read(), highlightbackground='white', background="#ffffff", takefocus=False, height=25 ).pack(padx=0, pady=0, ipadx=0, ipady=0)
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )

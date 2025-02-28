@@ -29,10 +29,10 @@ class Layer(Plugin):
             dict(layer=s, min=1, max=50, ini=1, name='distortion_height' )
         )
         skel.switch()
-        opt = gui.Optionbutton(frame, layer=s, nbr=6, pos='inline', name='mode', img_name='op' )
+        opt = gui.Optionbutton(frame, layer=s, nbr=6, pos='inline', name='mode', img_name='line' )
         opt.callback = lambda : skel.switch( opt.var in (4,5) )
 
-        opt.pack(anchor='w')
+        opt.pack(anchor='w', pady=(10,0))
         skel.pack(anchor='w', pady=(20,0))
 
         ### unused : dilate ###

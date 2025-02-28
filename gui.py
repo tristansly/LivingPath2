@@ -422,9 +422,9 @@ def selectPath_export(data): # gui select folder to save font
     print("file_path:", file_path)
     print("data:", data)
     if data['check:Generate font specimen']:
-        save_data.dumpFile(str(utils.path_dir(file_path))+'/'+str(file_name)+'_parameters.lvp')
-    if data['check:Save .lvp parameters file']:
         specimen.save( file_path, file_name, ext, ffname+' '+style, wiki.title, wiki.sum, wiki.start )
+    if data['check:Save .lvp parameters file']:
+        save_data.dumpFile(str(utils.path_dir(file_path))+'/'+str(file_name)+'_parameters.lvp')
 
     gu.used_glyphs.clear()
     main.process_font_export(file_path, name=ffname, style=style, flag=data['combo:Glyph set'])
