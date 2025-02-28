@@ -182,8 +182,4 @@ def new_outline(n_points, n_contours):
 ############## check time ######################################################
 
 def check_time(root):
-    now = datetime.now()
-    y = 2025
-    m = 2 # licence max date included
-    if now.year > y or (now.year == y and now.month > m) :
-        root.destroy()
+    return None
