@@ -4,7 +4,7 @@ LivingPath is an algorithmic font modification software (otf & ttf)
 Official project page http://livingpath.fr
 
 ### Installer
-<li>Mac / Windows installer available on http://livingpath.fr
+Mac / Windows installer available on http://livingpath.fr
 
 ### Run from sources 
 [with python 3]<br>
