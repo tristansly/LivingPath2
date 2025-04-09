@@ -6,7 +6,8 @@ Official project page http://livingpath.fr
 ### Installer
 <li>Mac / Windows installer available on http://livingpath.fr
 
-### Run from sources with python 3
+### Run from sources 
+[with python 3]<br>
 Feel free to contact me if you need more info to use, modify or add new feature !<br/>
 http://ivan-murit.fr
 
