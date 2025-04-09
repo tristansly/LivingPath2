@@ -1,5 +1,5 @@
 ## LivingPath 1.0
-LivingPath is an algorythmic font modification software (otf & ttf)
+LivingPath is an algorithmic font modification software (otf & ttf)
 
 Official project page [http://ivan-murit.fr/texturing](http://livingpath.fr)
 
@@ -8,7 +8,6 @@ Official project page [http://ivan-murit.fr/texturing](http://livingpath.fr)
 
 ### Run from sources
 <li>with python 3</li>
-<li>used libraries on requirement.txt</li>
 
 Feel free to contact me if you need more info to use, modify or add new feature !<br/>
 http://ivan-murit.fr
