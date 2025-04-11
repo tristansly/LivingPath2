@@ -4,10 +4,11 @@ import utils
 
 import numpy as np
 from PIL import Image, ImageOps
-# from numba import jit , njit
-from scipy.fft import fft2, ifft2
-from time import time
-
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+from matplotlib import cm
+import torch
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class Layer(Plugin):
     """
@@ -33,46 +34,55 @@ class Layer(Plugin):
         np.seterr(over='raise')
 
         originSize = img.size
-        img = img.resize( (int(1+img.width*s.resolution), int(1+img.height*s.resolution)), Image.LANCZOS)
+        img = img.resize( (int(1+img.height*s.resolution), int(1+img.height*s.resolution)), Image.LANCZOS)
 
         w = img.height
-        h = img.width
-        t = time()
+        h = img.height
+        # t = time()
         Nsteps =s.growing_time
         dt = 0.1
-        N = 256
-        c_hat = np.empty((w,h), dtype=np.complex64)
-        dfdc_hat = np.empty((w,h), dtype=np.complex64)
-        c = np.empty((Nsteps,w,h), dtype=np.float32)
-        dx = 1.0
+        c_hat = torch.empty((w,h), dtype=torch.complex64,device=device)
+        dfdc_hat = torch.empty_like(c_hat)
+        c = torch.empty((Nsteps,w,h), dtype=torch.float32,device=device)
+        L = (w/4)*np.pi
+        dx = L/w
         noise = s.noise
         rng = np.random.default_rng(12345)
+
         arr = np.array(img.getdata())
-        c[0] = np.reshape( (s.depth-arr/255)/2, ( -1, img.width))
-        c[0] = np.clip( c[0] + noise*rng.standard_normal(c[0].shape), 0,1)
+        img_ini =  np.empty((w,h), dtype=np.float32)
+        img_ini = np.reshape( (s.depth-arr/255)/2, ( -1, img.width))
+        c[0] = torch.tensor( img_ini + noise*rng.standard_normal(c[0].shape) ,dtype=torch.float32, device=device)
+
+        # print('c0 = ',c[0].mean().cpu().numpy())
+
         W = 2.0
         M = 1.0 # mobility
         kappa = 0.5 #gradient coeficient
 
-        kx = np.fft.fftfreq(w, d=dx)*2*np.pi
-        ky =  np.fft.fftfreq(h, d=dx)*2*np.pi
-        K = np.array(np.meshgrid(kx , ky ,indexing ='ij'), dtype=np.float32)
-        K2 = np.sum(K*K,axis=0, dtype=np.float32)
+        kx = ky = torch.fft.fftfreq(w, d=dx)*2*np.pi
+        Kx,Ky = torch.meshgrid(kx,kx,indexing ='ij')
+        K = torch.stack((Kx,Ky)).to(device)
+        K2 = torch.sum(K*K,dim=0)
 
         # The anti-aliasing factor
-        # kmax_dealias = kx.max()*2.0/3.0 # The Nyquist mode
-        # dealias = np.array((np.abs(K[0]) < kmax_dealias )*(np.abs(K[1]) < kmax_dealias ),dtype =bool)
-        def finterf(c_hat): return kappa*ifft2(K2*c_hat**2).real # The interfacial free energy density f(c) = Wc^2(1-c)^2 """
-        def fbulk(c): return W*c**2*(1-c)*c**2                   # The bulk free energy density f(c) = Wc^2(1-c)^2 """
-        def dfdc(c): return 2*W*(c*np.square(1-c)-(1-c)*c**2)          # The derivative of bulk free energy density f(c) = Wc^2(1-c)^2 """
+        kcut = kx.max()*2.0/3.0 # The Nyquist mode
+        dealias = (torch.abs(K[0]) < kcut )*(torch.abs(K[1]) < kcut )
 
-        c_hat[:] = fft2(c[0])
-        for i in range(0,Nsteps):
-            dfdc_hat[:] = fft2( dfdc( np.array(c[i-1], dtype=np.float32) )) # the FT of the derivative
-            # dfdc_hat *= dealias # dealising
+        def finterf(c_hat): return kappa*torch.fft.ifftn(K2*c_hat**2).real
+        def fbulk(c): return W*c**2*(1-c)*c**2
+        def dfdc(c): return 2*W*(c*(1-c)**2-(1-c)*c**2)
+
+        c_hat[:] = torch.fft.fftn(c[0])
+        for i in tqdm(range(1,Nsteps)):
+            dfdc_hat[:] = torch.fft.fftn(dfdc(c[i-1])) # the FT of the derivative
+            dfdc_hat *= dealias # dealising
             c_hat[:] = (c_hat-dt*K2*M*dfdc_hat)/(1+dt*M*kappa*K2**2) # updating in time
-            c[i] = ifft2(c_hat).real # inverse fourier transform
+            c[i] = torch.fft.ifftn(c_hat).real # inverse fourier transform
+            # error = torch.abs(c[i].sum()-cint)/cint
 
+        # print('c = ',c[-1].mean().cpu().numpy())
+        # print('relative_error = ',error.cpu().numpy())
         # print("R&D - Time Elapsed : " + str(time() - t) )
 
         img = np.clip( c[-1] * 255, 0, 255 )
