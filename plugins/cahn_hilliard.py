@@ -66,14 +66,13 @@ class Layer(Plugin):
         # The anti-aliasing factor
         kmax_dealias = kx.max()*2.0/3.0 # The Nyquist mode
         dealias = np.array((np.abs(K[0]) < kmax_dealias )*(np.abs(K[1]) < kmax_dealias ),dtype =bool)
-
         def finterf(c_hat): return kappa*ifft2(K2*c_hat**2).real # The interfacial free energy density f(c) = Wc^2(1-c)^2 """
         def fbulk(c): return W*c**2*(1-c)*c**2                   # The bulk free energy density f(c) = Wc^2(1-c)^2 """
         def dfdc(c): return 2*W*(c*(1-c)**2-(1-c)*c**2)          # The derivative of bulk free energy density f(c) = Wc^2(1-c)^2 """
 
         c_hat[:] = fft2(c[0])
         for i in range(0,Nsteps):
-            dfdc_hat[:] = fft2(dfdc(c[i-1])) # the FT of the derivative
+            dfdc_hat[:] = fft2( np.array(dfdc( np.array(c[i-1], dtype=np.float32) ), dtype=np.float32)) # the FT of the derivative
             dfdc_hat *= dealias # dealising
             c_hat[:] = (c_hat-dt*K2*M*dfdc_hat)/(1+dt*M*kappa*K2**2) # updating in time
             c[i] = ifft2(c_hat).real # inverse fourier transform
