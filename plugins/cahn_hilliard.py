@@ -44,6 +44,7 @@ class Layer(Plugin):
         dfdc_hat = np.empty((w,h), dtype=np.complex64)
         c = np.empty((Nsteps,w,h), dtype=np.float32)
 
+
         dx = 1.0
         noise = s.noise
         c0 = 0.5
@@ -51,6 +52,7 @@ class Layer(Plugin):
         arr = np.array(img.getdata())
         c[0] = np.reshape( (s.depth-arr/255)/2, ( -1, img.width))
         c[0] = c[0] + noise*rng.standard_normal(c[0].shape)
+
 
         W = 2.0
         M = 1.0 # mobility

@@ -8,6 +8,9 @@ import inspect
 from tkhtmlview import HTMLLabel
 import platform
 used_glyphs = []
+slow_icon = '⏳'
+if platform.system().startswith('Linux') : slow_icon = '[slow]'
+
 
 class Slider(ttk.Frame):
     def __init__(s, context, size=200, min=0,max=100, layer=None, name='', format="%d", flag='', ini=0, slow=False, callback=None):
@@ -33,7 +36,7 @@ class Slider(ttk.Frame):
         # s.slider.bind('<ButtonRelease-1>', s.update_eco) # unused
         s.slider.grid(column=0, row=1, sticky=tk.W)
 
-        s.title = ttk.Label(s, text = name.replace('_',' ') if not slow else name.replace('_', ' ')+'  ⏳' )
+        s.title = ttk.Label(s, text = name.replace('_',' ') if not slow else name.replace('_', ' ')+'  '+slow_icon )
         s.title.grid(column=0, row=0, sticky=tk.W)
         s.increment = 2
 
@@ -119,7 +122,7 @@ class Checkbutton(ttk.Frame):
         s.var = tk.StringVar()
         if not hasattr(s.layer, s.name) : s.set_attach_val(ini) # set ini only at layer init
         s.var.set( s.get_attach_val() )
-        s.check = ttk.Checkbutton( s, text=name.replace('_',' ') if not slow else name.replace('_', ' ')+'  ⏳', variable=s.var )
+        s.check = ttk.Checkbutton( s, text=name.replace('_',' ') if not slow else name.replace('_', ' ')+'  '+slow_icon, variable=s.var )
         s.check.configure(command=s.update, takefocus=0)
         s.check.grid(column=0, row=0, sticky=tk.W)
 
@@ -257,8 +260,8 @@ class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
             s.canvas.yview_scroll( int(-1*e.delta/120), 'units' ) # windows proof
         else :
             s.canvas.yview_scroll( int(-1*e.delta),     'units' ) # mac proof
-    def scrolldown(s,e): s.canvas.yview_scroll( -1*(e.delta/120), 'units' ) # linux
-    def scrollup(s,e):   s.canvas.yview_scroll(  1*(e.delta/120), 'units' ) # linux
+    def scrolldown(s,e): s.canvas.yview_scroll( int(-1 ), 'units' ) # linux
+    def scrollup(s,e):   s.canvas.yview_scroll( int( 1 ), 'units' ) # linux
 
     def bindChildren(s,widget):
         children = widget.winfo_children()
@@ -412,7 +415,8 @@ def show_shortcut_menu(root):
     with open(path('files/shortcut.html')) as f:
         HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white", takefocus=False,height=25,width=70).pack(side='left')
     with open(path('files/shortcut2.html')) as f:
-        HTMLLabel(frame,html=f.read(),highlightbackground='white',background="white", takefocus=False,height=25,width=70).pack(side='right')
+        content = f.read().replace('@#$',slow_icon)
+        HTMLLabel(frame,html=content,highlightbackground='white',background="white", takefocus=False,height=25,width=70).pack(side='right')
 
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )

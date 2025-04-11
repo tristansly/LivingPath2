@@ -10,7 +10,7 @@ from functools import partial
 from iso639 import language  # python-iso639 and not iso639
 import uharfbuzz as hb
 from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
-from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
+# from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
 import re
 import platform
 from copy import deepcopy
@@ -431,7 +431,7 @@ def selectPath_export(data): # gui select folder to save font
         main.process_font_export(file_path, name=ffname, style=style, flag=data['combo:Glyph set'])
 
         root.config(cursor="")
-        playsound( utils.path('files/export.wav') )
+        # playsound( utils.path('files/export.wav') )
 
 def import_font():
     filename = filedialog.askopenfilename(  title='Open Font file',
@@ -453,8 +453,9 @@ def setup_root(mainRoot):
     wm, hm = ws/10, hs/10
     # root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
     # root.geometry("{}x{}+-7+0".format(ws-0,hs-50))
-    root.geometry("{}x{}+0+0".format(ws,hs))
-    if platform.system() != "Darwin": root.state('zoomed')
+    if platform.system() == "Darwin" : root.geometry("{}x{}+0+0".format(ws,hs))
+    if platform.system() == "Windows": root.state('zoomed')
+    if platform.system().startswith('Linux'): root.attributes('-zoomed', True)
     # root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
     # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
     # if ws < 1500 : root.attributes("-fullscreen", True)
