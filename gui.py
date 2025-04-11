@@ -10,7 +10,7 @@ from functools import partial
 from iso639 import language  # python-iso639 and not iso639
 import uharfbuzz as hb
 from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
-# from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
+from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
 import re
 import platform
 from copy import deepcopy
@@ -431,7 +431,7 @@ def selectPath_export(data): # gui select folder to save font
         main.process_font_export(file_path, name=ffname, style=style, flag=data['combo:Glyph set'])
 
         root.config(cursor="")
-        # playsound( utils.path('files/export.wav') )
+        playsound( utils.path('files/export.wav') )
 
 def import_font():
     filename = filedialog.askopenfilename(  title='Open Font file',
