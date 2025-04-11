@@ -103,7 +103,7 @@ def global_Interface(root):
     try: wiki.set_wiki_lang( save_data.readParamFile(0) )
     except: wiki.set_wiki_lang( 'en' )
     main.new_group()
-    # main.new_layer(11) # test
+    main.new_layer(11) # test
 
 def open_vecto(*args):
     global vecto
