@@ -60,15 +60,15 @@ class Layer(Plugin):
         K2 = torch.sum(K*K,dim=0)
 
         # The anti-aliasing factor
-        kcut = kx.max()*2.0/3.0 # The Nyquist mode
-        dealias = (torch.abs(K[0]) < kcut )*(torch.abs(K[1]) < kcut )
+        # kcut = kx.max()*2.0/3.0 # The Nyquist mode
+        # dealias = (torch.abs(K[0]) < kcut )*(torch.abs(K[1]) < kcut )
 
         def finterf(c_hat): return kappa*torch.fft.ifftn(K2*c_hat**2).real
         def fbulk(c): return W*c**2*(1-c)*c**2
         def dfdc(c): return 2*W*(c*(1-c)**2-(1-c)*c**2)
 
         c_hat[:] = torch.fft.fftn(c[0])
-        for i in tqdm(range(1,Nsteps)):
+        for i in tqdm(range(1,Nsteps), leave=False): # leave opt will print timer
             dfdc_hat[:] = torch.fft.fftn(dfdc(c[i-1])) # the FT of the derivative
             # dfdc_hat *= dealias # dealising
             c_hat[:] = (c_hat-dt*K2*M*dfdc_hat)/(1+dt*M*kappa*K2**2) # updating in time
