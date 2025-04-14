@@ -4,9 +4,7 @@ import utils
 
 import numpy as np
 from PIL import Image, ImageOps
-import matplotlib.pyplot as plt
 from tqdm import tqdm
-from matplotlib import cm
 import torch
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -18,9 +16,6 @@ class Layer(Plugin):
 
     def __init__(s):
         super(Layer, s).__init__()
-        # noiseImg = Image.open( utils.path('files/noise.png') ).convert('L')
-        # s.noise = np.array(noiseImg.getdata(), dtype=np.float32)
-        # s.noise = np.reshape(s.noise/255, ( -1, noiseImg.width))
 
     def gui(s, frame):
 
@@ -31,7 +26,6 @@ class Layer(Plugin):
         # gui.Checkbutton(frame, layer=s, name='invert', ini=False).pack(anchor='nw')
         gui.Slider(frame, min=30, max=230, ini=127, layer=s, name='threshold').pack(anchor='nw', pady=(20,0))
     def run(s, img):
-        np.seterr(over='raise')
 
         originSize = img.size
         img = img.resize( (int(1+img.width*s.size), int(1+img.height*s.size)), Image.LANCZOS)
