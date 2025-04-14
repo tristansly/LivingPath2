@@ -9,7 +9,7 @@ from tkhtmlview import HTMLLabel
 import platform
 used_glyphs = []
 slow_icon = '⏳'
-if platform.system().startswith('Linux') : slow_icon = '[slow]'
+if platform.system().startswith('Linux') or platform.system() == "Darwin" : slow_icon = '[slow]'
 
 
 class Slider(ttk.Frame):

@@ -16,7 +16,7 @@ import pprint
 
 plugins, names, groups = [], [], []
 layer, over_layer = None, None
-current_glyph = 'g' # 'dkshade'
+current_glyph = 'l' # 本' # 'dkshade'
 root = None
 font = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
 font_origin = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
