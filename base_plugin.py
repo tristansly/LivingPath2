@@ -63,7 +63,7 @@ class Plugin(object):
         # print("LAYER POS :", n, " ", s.name, end=' ' )
 
     def set_main_frame(s):
-        s.frame.grid( column=(s.group.n*2), row=s.n, padx=15, pady=2, sticky="sw", expand=None )
+        s.frame.grid( column=(s.group.n*2+1), row=s.n, padx=15, pady=2, sticky="sw", expand=None )
 
 
     def change_order(s, group, layer, refresh=True):

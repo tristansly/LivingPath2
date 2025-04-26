@@ -71,7 +71,7 @@ class Group():
         for i, layer in enumerate(s.layers) :
             layer.set_main_frame()
 
-        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2)-1, row=0, sticky='n', rowspan='80', ipadx=0, ipady=0 )
+        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2), row=0, sticky='n', rowspan='80', ipadx=0, ipady=0 )
 
     def set_op(s, op, refresh=True):
         s.op = op

@@ -16,7 +16,7 @@ import pprint
 
 plugins, names, groups = [], [], []
 layer, over_layer = None, None
-current_glyph = 'l' # 本' # 'dkshade'
+current_glyph = 'g' # 本' # 'dkshade'
 root = None
 font = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
 font_origin = ttLib.TTFont(utils.path("files/1.otf"), recalcBBoxes=True)
@@ -68,7 +68,7 @@ def get_current_img( key, compute=True ):
     if gui.visual_info and over_layer and over_layer.img and over_layer.active : # show blue gost glyph
         mask = PIL.ImageOps.invert(over_layer.img).point(lambda i: i//3)
         out = out.convert('RGB')
-        out.paste((80,160,255), (0,0), mask )
+        # out.paste((80,160,255), (0,0), mask )
     return out
 
 

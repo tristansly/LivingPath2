@@ -35,27 +35,31 @@ def global_Interface(root):
     gui_view = ttk.Frame(root, style=frm_style)
 
     grip = ttk.Sizegrip(gui_foot)
-    grip.pack(side='right', anchor='se',  expand=False, padx=(0, 5), pady=(0, 5))
+    grip.pack(side='right', anchor='se', expand=False, padx=(0, 5), pady=(0, 5))
     grip.bind('<Button-1>', lambda x: root.state('normal') )
 
     gui_foot.pack(side='bottom', fill='x', expand=True, anchor='s', pady=(5,0), padx=(10,0) )
     gui_info.pack(side='left', fill='x', expand=False, anchor='s')
-    gui_zone.pack(side='top', fill='both', expand=True, anchor='n', pady=(10,20))
+    gui_zone.pack(side='top', fill='x', expand=False, anchor='n', pady=(10,20))
     ctn_para.pack(side='left', fill='y', expand=False, anchor='sw', padx=0, pady=0)
     gui_glob.pack(side='bottom', fill=None, expand=False, anchor='sw', padx=(30,0), pady=(20,0))
     gui_view.pack(side='top', fill='both', expand=True, anchor='n', pady=0)
+
+    # keep min space width in gui_zone
+    ttk.Frame(gui_zone, style=frm_style, height=int(0.2*root.winfo_screenheight()), width=2, takefocus=False).grid(rowspan=20, column=0, row=0, padx=0, pady=0 )
+
 
     global b_rules, b_paths
     b_rules = gu.Checkbutton(gui_glob, name='display_rules', ini=False)
     s_space = gu.Slider(gui_glob, min=-150,max=250, name='letter_spacing',callback=b_rules.select)
     b_rules.pack(anchor='w', pady=(20,20))
-    s_space.pack(anchor='w', pady=(0,10))
+    s_space.pack(anchor='w', pady=(0,10),  padx=(0,40)) # padx to prevent gui_para pushing gui_view
     global vecto
     vecto = ttk.LabelFrame(gui_glob, text="vectorization V", padding=(10, 10))
-    vecto.pack(anchor='sw', padx=(0,0), pady=(0,0), fill='both', ipady=0)
+    vecto.pack(anchor='sw', padx=(0,0), pady=(0,0), fill='both', ipady=0, ipadx=0)
     b_paths = gu.Checkbutton(vecto, name='display_paths', ini=False, slow=True)
     b_paths.pack(anchor='w')
-    gu.Slider(vecto, min=0.01, max=2, name='accuracy', format='%0.2f' , ini=1,callback=b_paths.select).pack(anchor='w')
+    gu.Slider(vecto, min=0.01, max=2, name='accuracy', format='%0.2f', ini=1,callback=b_paths.select).pack(anchor='w')
     gu.Slider(vecto, max=1.5, name='simplify_path', format='%0.2f', ini=0.45,callback=b_paths.select).pack(anchor='w')
     gu.Slider(vecto, max=1.34, name='curves_limit', format='%0.2f', ini=0.90,callback=b_paths.select).pack(anchor='w')
     # gu.Slider(vecto, max=500, name='min' , ini=2).pack(anchor='w')
@@ -78,6 +82,7 @@ def global_Interface(root):
     global img_letter, frame_txt
     frame_ltr = ttk.Frame(gui_view, style=frm_style)
     frame_txt = gu.ScrolledFrame(gui_view, side='right', speed=70)
+
     gui_view.columnconfigure(0, weight=1, uniform='a')
     gui_view.columnconfigure(1, weight=1, uniform='a')
     frame_txt.grid(row=0,column=1, sticky='ewns')
@@ -108,7 +113,7 @@ def global_Interface(root):
 def open_vecto(*args):
     global vecto
     vecto["text"]="vectorization options ˄"
-    for widget in vecto.winfo_children(): widget.pack()
+    for widget in vecto.winfo_children(): widget.pack( )
     vecto.bind('<Button-1>', close_vecto )
 def close_vecto(*args):
     global vecto
@@ -462,6 +467,7 @@ def setup_root(mainRoot):
     # root['background'] = 'white' # for linux distro ?
     gu.set_icon(root)
     # root.tk.call('tk', 'scaling', 1.5)
+    root.minsize(900, 600)
     root.tk.call("source", utils.path("files/azure.tcl")) # theme
     root.tk.call("set_theme", "light")
     root.drop_target_register(DND_FILES) # drag & drop
