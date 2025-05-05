@@ -238,8 +238,15 @@ class Separator(ttk.Separator):
 #----------------------------------------------------------------------------------
 def get_img(name, size=None):
     img = Image.open(path('files/theme/'+name))
-    if size: img = img.resize(size, Image.Resampling.BOX)
-    return ImageTk.PhotoImage(img)
+    if size: img = img.resize(size, resample=Image.Resampling.LANCZOS)
+
+    img = ImageTk.PhotoImage(img)
+    # img = tk.PhotoImage(file=path('files/theme/'+name))
+    # img.subsample(4)
+    # return img
+    return img
+
+
 #----------------------------------------------------------------------------------
 
 class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
