@@ -5,7 +5,7 @@ from functools import partial
 from tkinter import Button, Label, Entry, Tk, SE, ttk
 from PIL import ImageTk, Image
 import main
-import gui
+import gui, gui_utils
 
 
 def changeOrder(widget1, widget2, initial, last_elem=False):
@@ -25,20 +25,26 @@ def changeOrder(widget1, widget2, initial, last_elem=False):
 def on_click(event):
     btn = event.widget
     # print('drag',btn)
-    if ( isinstance(btn, ttk.Button)
-    and btn['text'] == 'lll'
-    and not btn['style'] == 'transparent.TButton' ):
+    if ( isinstance(btn, gui_utils.ButtonImage) and btn.img_name == 'drag'  ):
         frame = event.widget.master
         start = (event.x,event.y)
-        grid_info = frame.grid_info()
-        clone = clone_widget(frame, frame.master)
-        clone.grid(row=frame.grid_info()['row'], column=frame.grid_info()['column'] )
+        global firstDrag
+        firstDrag = True
         btn.bind("<B1-Motion>", lambda event:drag_motion(event, frame, start))
-        btn.bind("<ButtonRelease-1>", lambda event:drag_release(event, frame, clone, grid_info))
+        btn.leave(None)
+        btn.bind('<ButtonRelease-1>', btn.enter) # if released without drag
         print('CLICK : frame ', frame)
 
 
 def drag_motion(event, frame, start):
+    global firstDrag # activate clone only if dragging
+    if firstDrag :
+        grid_info = frame.grid_info()
+        clone = clone_widget(frame, frame.master)
+        clone.grid(row=frame.grid_info()['row'], column=frame.grid_info()['column'] )
+        event.widget.bind("<ButtonRelease-1>", lambda event:drag_release(event, frame, clone, grid_info))
+    firstDrag = False
+
     x = frame.winfo_x()+event.x-start[0]
     y = frame.winfo_y()+event.y-start[1]
 
@@ -50,6 +56,7 @@ def drag_motion(event, frame, start):
 def drag_release(event, frame, clone, grid_info):
     clone.destroy()
     frame.lower()
+    event.widget.enter(None)
     event.widget.unbind("<ButtonRelease-1>")
     event.widget.unbind("<B1-Motion>")
     x, y = gui.gui_zone.winfo_pointerxy()

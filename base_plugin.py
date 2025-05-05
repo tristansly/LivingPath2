@@ -1,5 +1,5 @@
 # import gui_utils as gui
-import group, main, gui, gui_drag_drop
+import group, main, gui, gui_drag_drop, gui_utils
 from PIL import Image
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label
 from functools import partial
@@ -11,34 +11,41 @@ class Plugin(object):
     def __init__(s):
         s.group = None
         s.n = None
-        s.active=True
+        s.active= True
         s.img = None
 
     def setup_gui(s):
         s.frame = ttk.Frame(gui.gui_zone)
-        s.frame.bind("<Enter>", lambda _: s.enter_btn())
-        s.frame.bind("<Leave>", lambda _: s.leave_btn())
 
         s.gui_button = ttk.Checkbutton(s.frame,
-            text='group path' if s.name=='outline' else s.name.replace('_',' '),
-            style='Toggle.TButton', width=20)
-        s.gui_button.grid( column=1, row=0, padx=2, pady=0, sticky="sw" )
-        s.gui_drag = ttk.Button(s.frame, text="lll" ,width=1.2, takefocus=False)
-        s.gui_del = ttk.Button(s.frame, text="X", width=1.2, takefocus=False)
-        s.gui_toggle = ttk.Button(s.frame, text='O', width=1.2, command = s.toggle)
-        s.gui_drag.bind("<Button-1>",gui_drag_drop.on_click)
+            text='group path' if s.name=='outline' else s.name.replace('_',' '), style='Toggle.TButton', width=20)
+        s.gui_button.grid( column=1, row=0, padx=2, pady=0, sticky="w")
 
+        s.gui_drag =   gui_utils.ButtonImage(s.frame, img_name="drag", flag='drag')
+        s.gui_del =    gui_utils.ButtonImage(s.frame, img_name="del")
+        s.gui_toggle = gui_utils.ButtonImage(s.frame, img_name="toggle", command = s.toggle, flag='click')
+        s.gui_drag.bind("<Button-1>", gui_drag_drop.on_click)
 
-        if s.name=='outline' and s.group.n==0 : s.gui_del["style"] = 'transparent.TButton'
-        if s.name=='outline' : s.gui_drag["style"] = 'transparent.TButton'
-        s.gui_toggle.grid( column=2, row=0, padx=2, pady=0 )
-        s.gui_drag.grid( column=0, row=0, padx=2, pady=0, sticky="sw" )
-        s.gui_del.grid( column=3, row=0, padx=2, pady=0 )
+        if s.group.n != 0 or s.name != 'outline':
+            s.gui_del.grid( column=3, row=0, padx=2, pady=0, sticky="w" )
+        if s.name != 'outline' :
+            s.gui_drag.grid( column=0, row=0, padx=2, pady=0, sticky="w" )
+        else :
+            s.gui_button.grid( column=1, row=0, padx=(40,2), pady=0, sticky="w" ) # add padding to the 1st
+        s.gui_toggle.grid( column=2, row=0, padx=2, pady=0, sticky="w" )
+
+        s.gui_button.bind("<Enter>", lambda _: s.enter_btn())
+        s.gui_button.bind("<Leave>", lambda _: s.leave_btn())
+
 
     def toggle(s, refresh=True):
         s.active = not s.active
+        s.gui_button.state(['!disabled' if s.active else 'disabled'])
+        s.gui_toggle.toggle(s.active)
+        s.gui_drag.toggle(s.active)
+        s.gui_del.toggle(s.active)
+
         if s.name=='outline' :
-            s.gui_toggle["style"] = 'azure.TButton' if s.active else 'gray.TButton'
             if s.active:
                 for l in s.group.layers[1:]:
                     if not l.active: l.toggle(refresh=False)
@@ -46,24 +53,25 @@ class Plugin(object):
                 for l in s.group.layers[1:]:
                     if l.active: l.toggle(refresh=False)
         else:
-            s.gui_drag["style"] = 'azure.TButton' if s.active else 'gray.TButton'
-            s.gui_del["style"] = 'azure.TButton' if s.active else 'gray.TButton'
-            s.gui_toggle["style"] = 'azure.TButton' if s.active else 'gray.TButton'
-            if s.active and not s.group.layers[0].active :
+            # if s is main.layer : main.select_layer( None ) # unselect layer
+            if s.active and not s.group.layers[0].active : # activate group if group is disabled
                 s.group.layers[0].toggle(refresh=False)
         if refresh : gui.refresh()
+
 
     def gui_position(s, n, group=None ):
         if group : s.group = group
         s.n = n
         s.set_main_frame()
         s.gui_button.config( command = partial(main.select_layer, s) )
-        if s.name!='outline' : s.gui_del.config( command = partial(s.group.del_layer, s.n) )
-        if s.name=='outline' : s.gui_del.config( command = partial(main.del_group, s.group) )
+        if s.name!='outline' : s.gui_del.setCommand( partial(s.group.del_layer, s.n) )
+        if s.name=='outline' : s.gui_del.setCommand( partial(main.del_group, s.group) )
         # print("LAYER POS :", n, " ", s.name, end=' ' )
 
     def set_main_frame(s):
-        s.frame.grid( column=(s.group.n*2+1), row=s.n, padx=15, pady=2, sticky="sw", expand=None )
+        # s.frame.grid_rowconfigure(s.n, weight=1)
+        # s.frame.grid_columnconfigure((s.group.n*2+1), weight=1)
+        s.frame.grid( column=(s.group.n*2+1), row=s.n, padx=15, pady=2, sticky="nsew" )
 
 
     def change_order(s, group, layer, refresh=True):

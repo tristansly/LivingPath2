@@ -1,5 +1,5 @@
 from utils import *
-import font_utils, gui
+import font_utils, gui, gui_utils
 from PIL import ImageTk, Image
 import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, Entry
@@ -142,6 +142,43 @@ class Checkbutton(ttk.Frame):
 
     def select(s):
         if int(s.var.get()) == 0 : s.check.invoke()
+
+#--------------------------------------------------------------------------------
+class ButtonImage(ttk.Button):
+    def __init__(s, context, img_name="", flag=None, hover=None, style="custom.TButton", size=20, *args,**kwargs):
+        super(ButtonImage, s).__init__(context, style=style, *args,**kwargs)
+        s.img_name = img_name
+        s.flag = flag
+        s.hover = hover
+        s.active = True
+        if img_name :
+            s.ico_on  = get_img(img_name+'-on.png', (size,size))
+            s.ico_off = get_img(img_name+'-off.png', (size,size))
+            s.ico_on_alt = get_img(img_name+'-on-alt.png', (size,size)) if s.flag in ('click','drag') else None
+            s.ico_off_alt = get_img(img_name+'-off-alt.png', (size,size)) if s.flag in ('click','drag') else None
+
+            if hover : s.bind('<Enter>', s.enter )
+            if hover : s.bind('<Leave>', s.leave )
+            if not hover : s.enter(None)
+            if hover : s.leave(None)
+
+    def setCommand(s, c): s.config( command = c )
+
+    def enter(s,e):
+        s['image'] = s.ico_on  if s.active else s.ico_off
+        if s.flag=='click': s['image'] = s.ico_on  if s.active else s.ico_off
+        if s.hover:         s['image'] = s.ico_on
+        if s.flag=='drag':  s['image'] = s.ico_on if s.active else s.ico_off
+        print('enter           ', s['image'])
+    def leave(s,e):
+        s['image'] = s.ico_off if s.active else s.ico_off_alt if s.flag=='click' else s.ico_on ;
+        if s.hover : s['image']=s.ico_off
+        if s.flag=='drag' : s['image'] = s.ico_on_alt if s.active else s.ico_off_alt
+        print('leave           ', s['image'])
+
+    def toggle(s, layer_is_active=True):
+        s.active = not s.active
+        s.enter(None)
 
 
 #--------------------------------------------------------------------------------

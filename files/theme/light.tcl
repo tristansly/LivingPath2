@@ -310,6 +310,11 @@ namespace eval ttk::theme::azure-light {
                 active $I(rect-basic) \
             ] -border 4 -sticky ewns
 
+
+
+
+
+
         # Radiobutton
         ttk::style configure TRadiobutton -padding 4
 

@@ -46,7 +46,7 @@ def global_Interface(root):
     gui_view.pack(side='top', fill='both', expand=True, anchor='n', pady=0)
 
     # keep min space width in gui_zone
-    ttk.Frame(gui_zone, style=frm_style, height=int(0.2*root.winfo_screenheight()), width=2, takefocus=False).grid(rowspan=20, column=0, row=0, padx=0, pady=0 )
+    ttk.Frame(gui_zone, style=frm_style, height=int(0.2*root.winfo_screenheight()), width=2).grid(rowspan=1000, column=0, row=0, padx=0, pady=0 )
 
 
     global b_rules, b_paths
@@ -55,8 +55,10 @@ def global_Interface(root):
     b_rules.pack(anchor='w', pady=(20,20))
     s_space.pack(anchor='w', pady=(0,10),  padx=(0,40)) # padx to prevent gui_para pushing gui_view
     global vecto
-    vecto = ttk.LabelFrame(gui_glob, text="vectorization V", padding=(10, 10))
+    vecto = ttk.LabelFrame(gui_glob, text="vectorization options", padding=(10, 10))
     vecto.pack(anchor='sw', padx=(0,0), pady=(0,0), fill='both', ipady=0, ipadx=0)
+    vecto.bind("<Enter>", lambda _: open_vecto_indicator() )
+    vecto.bind("<Leave>", lambda _: close_vecto_indicator() )
     b_paths = gu.Checkbutton(vecto, name='display_paths', ini=False, slow=True)
     b_paths.pack(anchor='w')
     gu.Slider(vecto, min=0.01, max=2, name='accuracy', format='%0.2f', ini=1,callback=b_paths.select).pack(anchor='w')
@@ -74,10 +76,12 @@ def global_Interface(root):
         gui_font_info[k] = tk.StringVar()
         ttk.Label(gui_info, textvariable=gui_font_info[k] ).grid(column=i, row=0, padx=20, pady=(5,10) )
 
-    refresh_button = ttk.Button(root, text="refresh", width=1.2, command = refresh_txt)
-    refresh_butto2 = ttk.Button(root, text="text",    width=1.2, command = new_wiki)
+    refresh_button = gu.ButtonImage(root, text="refresh", size=20, hover=True, img_name="update", command = refresh_txt)
+    refresh_butto2 = gu.ButtonImage(root, text="text",    size=20, hover=True, img_name="text", command = new_wiki)
     refresh_button.place(in_=gui_view, relx=1.0, rely=0, x=-80, anchor="ne")
     refresh_butto2.place(in_=gui_view, relx=1.0, rely=0, x=-30, anchor="ne")
+    refresh_button.config(style='big.TButton')
+    refresh_butto2.config(style='big.TButton')
 
     global img_letter, frame_txt
     frame_ltr = ttk.Frame(gui_view, style=frm_style)
@@ -112,16 +116,18 @@ def global_Interface(root):
 
 def open_vecto(*args):
     global vecto
-    vecto["text"]="vectorization options ˄"
     for widget in vecto.winfo_children(): widget.pack( )
     vecto.bind('<Button-1>', close_vecto )
+    vecto.config(cursor="");
 def close_vecto(*args):
     global vecto
-    vecto["text"]="vectorization options ˅"
     for widget in vecto.winfo_children(): widget.pack_forget()
-    vecto.bind('<Button-1>', open_vecto )
     b_paths.pack(anchor="w")
-    # ttk.Separator(vecto, orient='horizontal').pack(anchor='w', ipadx=0, ipady=0, padx=0, pady=0)
+    vecto.bind('<Button-1>', open_vecto )
+    vecto.config(cursor="watch");
+def open_vecto_indicator():  global vecto ; vecto["text"] = "vectorization options ..."
+def close_vecto_indicator(): global vecto ; vecto["text"] = "vectorization options"
+
 
 
 def refresh(compute=True, clear_glyphs=True):
@@ -484,19 +490,21 @@ def setup_root(mainRoot):
     )
     style.map('no_indicatoron.TCheckbutton', padding="1", compound="center" )
     style.configure('cover.TFrame', background="white")
-    style.configure('gray.TButton', foreground="#888")
+    style.configure("custom.TButton", padding=[3,3,3,3])
+    style.configure("big.TButton", padding=[7,7,7,7])
+    # style.configure('gray.TButton',  padding=[3,3,3,3])
     # style.map('transparent.TButton', foreground=[('pressed', 'blue'), ('active', 'white')] )
+    # style.configure('transparent.TButton', foreground="white", padding=[3,3,3,3])
+    # style.layout('transparent.TButton', # delete button background
+    # [('Button.border', {'border': '1', 'children':
+    #     [('Button.focus', {'children':
+    #         [('Button.padding', {'children':
+    #             [('Button.label', {'expand': '1','sticky': 'nswe'})],
+    #         'sticky': 'nswe'})],
+    #     'sticky': 'nswe'})],
+    # 'sticky': 'nswe'})]
+    # )
 
-    style.configure('transparent.TButton', foreground="white")
-    style.layout('transparent.TButton',
-    [('Button.border', {'border': '1', 'children':
-        [('Button.focus', {'children':
-            [('Button.padding', {'children':
-                [('Button.label', {'expand': '1','sticky': 'nswe'})],
-            'sticky': 'nswe'})],
-        'sticky': 'nswe'})],
-    'sticky': 'nswe'})]
-    )
     # root.option_add('*tearOff', 0)
 
     # layout on the root window

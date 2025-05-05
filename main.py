@@ -68,7 +68,7 @@ def get_current_img( key, compute=True ):
     if gui.visual_info and over_layer and over_layer.img and over_layer.active : # show blue gost glyph
         mask = PIL.ImageOps.invert(over_layer.img).point(lambda i: i//3)
         out = out.convert('RGB')
-        # out.paste((80,160,255), (0,0), mask )
+        out.paste((80,160,255), (0,0), mask )
     return out
 
 
@@ -159,8 +159,9 @@ def select_layer( selected ):
     for grp in groups :
         for lay in grp.layers :
             lay.gui_button.state(["!selected"])
-    layer.gui_button.state(["selected"])
-    layer.gui( gui.gui_para.content )
+    if selected :
+        layer.gui_button.state(["selected"])
+        layer.gui( gui.gui_para.content )
     gui.gui_para.updateContent()
 
     print('SELECT_LAYER : group',layer.group.n,' - layer', layer.n)
