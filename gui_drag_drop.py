@@ -33,7 +33,7 @@ def on_click(event):
         btn.bind("<B1-Motion>", lambda event:drag_motion(event, frame, start))
         btn.leave(None)
         btn.bind('<ButtonRelease-1>', btn.enter) # if released without drag
-        print('CLICK : frame ', frame)
+        # print('CLICK : frame ', frame)
 
 
 def drag_motion(event, frame, start):

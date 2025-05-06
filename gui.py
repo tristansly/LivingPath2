@@ -78,8 +78,8 @@ def global_Interface(root):
 
     refresh_button = gu.ButtonImage(root, text="refresh", size=20, hover=True, img_name="update", command = refresh_txt)
     refresh_butto2 = gu.ButtonImage(root, text="text",    size=20, hover=True, img_name="text", command = new_wiki)
-    refresh_button.place(in_=gui_view, relx=1.0, rely=0, x=-80, anchor="ne")
-    refresh_butto2.place(in_=gui_view, relx=1.0, rely=0, x=-30, anchor="ne")
+    refresh_button.place(in_=gui_zone, relx=1, rely=1, x=-80, y=-50, anchor="ne")
+    refresh_butto2.place(in_=gui_zone, relx=1, rely=1, x=-30, y=-50, anchor="ne")
     refresh_button.config(style='big.TButton')
     refresh_butto2.config(style='big.TButton')
 
@@ -124,7 +124,7 @@ def close_vecto(*args):
     for widget in vecto.winfo_children(): widget.pack_forget()
     b_paths.pack(anchor="w")
     vecto.bind('<Button-1>', open_vecto )
-    vecto.config(cursor="watch");
+    vecto.config(cursor="hand2");
 def open_vecto_indicator():  global vecto ; vecto["text"] = "vectorization options ..."
 def close_vecto_indicator(): global vecto ; vecto["text"] = "vectorization options"
 
