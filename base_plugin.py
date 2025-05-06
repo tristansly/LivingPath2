@@ -21,18 +21,22 @@ class Plugin(object):
             text='group path' if s.name=='outline' else s.name.replace('_',' '), style='Toggle.TButton', width=20)
         s.gui_button.grid( column=1, row=0, padx=2, pady=0, sticky="w")
 
-        s.gui_drag =   gui_utils.ButtonImage(s.frame, img_name="drag", flag='drag')
-        s.gui_del =    gui_utils.ButtonImage(s.frame, img_name="del")
-        s.gui_toggle = gui_utils.ButtonImage(s.frame, img_name="toggle", command = s.toggle, flag='click')
+        s.frame.update()
+        print(s.gui_button.winfo_height(),'px')
+        h = s.gui_button.winfo_height() - 6 * gui.DPI
+
+        s.gui_drag =   gui_utils.ButtonImage(s.frame, size=h, img_name="drag", flag='drag')
+        s.gui_del =    gui_utils.ButtonImage(s.frame, size=h, img_name="del")
+        s.gui_toggle = gui_utils.ButtonImage(s.frame, size=h, img_name="toggle", command = s.toggle, flag='click')
         s.gui_drag.bind("<Button-1>", gui_drag_drop.on_click)
 
         if s.group.n != 0 or s.name != 'outline':
-            s.gui_del.grid( column=3, row=0, padx=2, pady=0, sticky="w" )
+            s.gui_del.grid( column=3, row=0, padx=2, pady=0, sticky="wnse" )
         if s.name != 'outline' :
-            s.gui_drag.grid( column=0, row=0, padx=2, pady=0, sticky="w" )
+            s.gui_drag.grid( column=0, row=0, padx=2, pady=0, sticky="wnse" )
         else :
-            s.gui_button.grid( column=1, row=0, padx=(40,2), pady=0, sticky="w" ) # add padding to the 1st
-        s.gui_toggle.grid( column=2, row=0, padx=2, pady=0, sticky="w" )
+            s.gui_button.grid( column=1, row=0, padx=(h*2+4,2), pady=0, sticky="wnse" ) # add padding to the 1st
+        s.gui_toggle.grid( column=2, row=0, padx=2, pady=0, sticky="wnse" )
 
         s.gui_button.bind("<Enter>", lambda _: s.enter_btn())
         s.gui_button.bind("<Leave>", lambda _: s.leave_btn())

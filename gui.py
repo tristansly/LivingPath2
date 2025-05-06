@@ -473,10 +473,17 @@ def setup_root(mainRoot):
     # if ws < 1500 : root.attributes("-fullscreen", True)
     # root['background'] = 'white' # for linux distro ?
     gu.set_icon(root)
-    # root.tk.call('tk', 'scaling', 1.5)
+
+    root.tk.call('tk', 'scaling', 2)
+    print('DPI:', round(root.winfo_fpixels('1i'))  )
+    global DPI
+    DPI = int(round(root.winfo_fpixels('1i'))/72)
+
     root.minsize(900, 600)
     root.tk.call("source", utils.path("files/azure.tcl")) # theme
     root.tk.call("set_theme", "light")
+    # s = ttk.Style(root) #  style mac...
+    # s.theme_use('aqua')
     root.drop_target_register(DND_FILES) # drag & drop
     root.resizable()
     root.dnd_bind('<<Drop>>', lambda e: drop(root, e) )
