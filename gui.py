@@ -12,7 +12,7 @@ import uharfbuzz as hb
 from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
 from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
 import re
-import platform
+import platform, math
 from copy import deepcopy
 import pprint
 visual_info = False
@@ -42,7 +42,7 @@ def global_Interface(root):
     gui_info.pack(side='left', fill='x', expand=False, anchor='s')
     gui_zone.pack(side='top', fill='x', expand=False, anchor='n', pady=(10,20))
     ctn_para.pack(side='left', fill='y', expand=False, anchor='sw', padx=0, pady=0)
-    gui_glob.pack(side='bottom', fill=None, expand=False, anchor='sw', padx=(30,0), pady=(20,0))
+    gui_glob.pack(side='bottom', fill=None, expand=False, anchor='sw', padx=(20,0), pady=(20,0))
     gui_view.pack(side='top', fill='both', expand=True, anchor='n', pady=0)
 
     # keep min space width in gui_zone
@@ -474,37 +474,10 @@ def setup_root(mainRoot):
     # root['background'] = 'white' # for linux distro ?
     gu.set_icon(root)
 
-    scaleFactor = 1
-    global DPI
+    scaleFactor = root.winfo_fpixels('1i')/72
+    root.tk.call('tk', 'scaling', 1.5 )
 
-    if platform.system() == "Windows":
-        import ctypes
-        scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 72
-        root.tk.call('tk', 'scaling', scaleFactor)
-        DPI = ctypes.windll.user32.GetDpiForWindow(root.winfo_id()) // 72
-
-        MM_TO_IN = 0.0393700787
-        # Get a DC from the window's HWND
-        dc = ctypes.windll.user32.GetDC(root.winfo_id())
-        # The the monitor phyical width
-        # (returned in millimeters then converted to inches)
-        mw = ctypes.windll.gdi32.GetDeviceCaps(dc, 4) * MM_TO_IN
-        print(ctypes.windll.gdi32.GetDeviceCaps(dc, 4))
-        # The the monitor phyical height
-        mh = ctypes.windll.gdi32.GetDeviceCaps(dc, 6) * MM_TO_IN
-        # Get the monitor horizontal resolution
-        dw = root.winfo_screenwidth()
-        # Get the monitor vertical resolution
-        dh = ctypes.windll.gdi32.GetDeviceCaps(dc, 10)
-        hdpi, vdpi = dw / mw, dh / mh
-        DPI = hdpi/72
-
-    # DPI = int(round(root.winfo_fpixels('1i'))/72)
-    print(DPI)
-    root.tk.call('tk', 'scaling', DPI)
-
-
-    root.minsize(900, 600)
+    root.minsize( round(800) , round(500) )
     root.tk.call("source", utils.path("files/azure.tcl")) # theme
     root.tk.call("set_theme", "light")
     # s = ttk.Style(root) #  style mac...
@@ -523,8 +496,8 @@ def setup_root(mainRoot):
     )
     style.map('no_indicatoron.TCheckbutton', padding="1", compound="center" )
     style.configure('cover.TFrame', background="white")
-    style.configure("custom.TButton", padding=[3,3,3,3])
-    style.configure("big.TButton", padding=[7,7,7,7])
+    style.configure("custom.TButton", padding=[2,2,2,2])
+    style.configure("big.TButton", padding=[6,6,6,6])
     # style.configure('gray.TButton',  padding=[3,3,3,3])
     # style.map('transparent.TButton', foreground=[('pressed', 'blue'), ('active', 'white')] )
     # style.configure('transparent.TButton', foreground="white", padding=[3,3,3,3])
@@ -543,6 +516,11 @@ def setup_root(mainRoot):
     # layout on the root window
     root.columnconfigure(0, weight=0) # ????????
     root.columnconfigure(1, weight=0)
+
+    # import tkinter.font as tkFont
+    # default_font = tkFont.nametofont("TkTextFont")
+    # default_font.configure(size=round(12/scaleFactor))
+    # root.option_add("*Font", default_font)
 
     # general key control
     # root.bind("<Escape>", lambda x: production_esc(root))

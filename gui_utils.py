@@ -26,8 +26,7 @@ class Slider(ttk.Frame):
         s.val = ttk.Label(s, text = s.format % s.get_attach_val()) # display fix slider number
         s.val.grid(column=1, row=1, sticky=tk.W, padx=5 )
         s.slider_var = tk.DoubleVar()
-        s.slider = ttk.Scale(s, from_=min, to_=max, length=size,
-            orient='horizontal', style='Tick.TScale', variable=s.slider_var )
+        s.slider = ttk.Scale(s, from_=min, to_=max, length=size, orient='horizontal', style='Tick.TScale', variable=s.slider_var )
         s.slider_var.set( s.get_attach_val() )
         s.slider.configure(command = s.update)
         s.slider.bind('<Button-1>', s.onclick)
@@ -188,7 +187,7 @@ class Optionbutton(ttk.Frame):
         s.name = name.replace(' ', '_')
         if img_name : name = img_name
         s.label = ttk.Label(s, text = s.name.replace('_',' ')+" : ")
-        s.label.grid(column=0, row=0, sticky=tk.W, padx=0 )
+        s.label.grid(column=0, row=0, sticky=tk.W, padx=0, pady=0 )
         s.callback = callback
         s.ico_off, s.ico_on, s.b = [], [], []
         for i in range(nbr) :
@@ -196,7 +195,7 @@ class Optionbutton(ttk.Frame):
             s.ico_off.append( get_img(name+'-off-'+str(i)+'.png', (20,20)) )
             s.b.append( ttk.Checkbutton(s, style='no_indicatoron.TCheckbutton',
                 command=partial(s.set,i), takefocus=False ) )
-            s.b[i].grid( row=0, column=i+1, padx=(0,10) )
+            s.b[i].grid( row=0, column=i+1, padx=(0,0) )
             s.b[i].bind('<Enter>',  partial(s.onEnter, i) )
             s.b[i].bind('<Leave>',  partial(s.onLeave, i) )
 
@@ -234,9 +233,11 @@ class Separator(ttk.Separator):
         super(Separator, s).__init__(context)
 
 #----------------------------------------------------------------------------------
-def get_img(name, size=None):
+def get_img(name, size=0):
     img = Image.open(path('files/theme/'+name))
-    if size: img = img.resize(size, resample=Image.Resampling.LANCZOS)
+    size = ( round(size[0]), round(size[1]) )
+    img = img.resize(size, resample=Image.Resampling.LANCZOS)
+
     img = ImageTk.PhotoImage(img)
 
     # reduce image with TK insted of PIL (DPI pb with both)

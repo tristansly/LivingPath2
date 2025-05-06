@@ -22,8 +22,7 @@ class Plugin(object):
         s.gui_button.grid( column=1, row=0, padx=2, pady=0, sticky="w")
 
         s.frame.update()
-        print(s.gui_button.winfo_height(),'px')
-        h = round( s.gui_button.winfo_height() - 6 * gui.DPI )
+        h = round( s.gui_button.winfo_height() - 12 )
 
         s.gui_drag =   gui_utils.ButtonImage(s.frame, size=h, img_name="drag", flag='drag')
         s.gui_del =    gui_utils.ButtonImage(s.frame, size=h, img_name="del")
@@ -31,12 +30,12 @@ class Plugin(object):
         s.gui_drag.bind("<Button-1>", gui_drag_drop.on_click)
 
         if s.group.n != 0 or s.name != 'outline':
-            s.gui_del.grid( column=3, row=0, padx=2, pady=0, sticky="wnse" )
+            s.gui_del.grid( column=3, row=0, padx=2, pady=0, sticky="w" )
         if s.name != 'outline' :
-            s.gui_drag.grid( column=0, row=0, padx=2, pady=0, sticky="wnse" )
+            s.gui_drag.grid( column=0, row=0, padx=2, pady=0, sticky="w" )
         else :
-            s.gui_button.grid( column=1, row=0, padx=(h*2+4,2), pady=0, sticky="wnse" ) # add padding to the 1st
-        s.gui_toggle.grid( column=2, row=0, padx=2, pady=0, sticky="wnse" )
+            s.gui_button.grid( column=1, row=0, padx=(s.gui_button.winfo_height()+4+2,2), pady=0, sticky="w" ) # add padding to the 1st
+        s.gui_toggle.grid( column=2, row=0, padx=2, pady=0, sticky="w" )
 
         s.gui_button.bind("<Enter>", lambda _: s.enter_btn())
         s.gui_button.bind("<Leave>", lambda _: s.leave_btn())
@@ -75,7 +74,7 @@ class Plugin(object):
     def set_main_frame(s):
         # s.frame.grid_rowconfigure(s.n, weight=1)
         # s.frame.grid_columnconfigure((s.group.n*2+1), weight=1)
-        s.frame.grid( column=(s.group.n*2+1), row=s.n, padx=15, pady=2, sticky="nsew" )
+        s.frame.grid( column=(s.group.n*2+1), row=s.n, padx=10, pady=2, sticky="nsew" )
 
 
     def change_order(s, group, layer, refresh=True):

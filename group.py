@@ -26,7 +26,7 @@ class Group():
             s.ico_off.append( gui_utils.get_img('op-off-'+str(i)+'.png', (20,20)) )
             s.gui_op.append( ttk.Checkbutton( s.op_frame, style='no_indicatoron.TCheckbutton',takefocus=False,
                 command = partial(s.set_op, i), image=s.ico_off[i]) )
-            s.gui_op[i].grid( row=i, column=0, pady=0, ipady=0 )
+            s.gui_op[i].grid( row=i, column=0, padx=4, pady=1 )
             s.gui_op[i].bind('<Enter>',  partial(s.onEnter, i) )
             s.gui_op[i].bind('<Leave>',  partial(s.onLeave, i) )
         s.gui_op[s.op].config( image=s.ico_on[s.op] )
@@ -71,7 +71,7 @@ class Group():
         for i, layer in enumerate(s.layers) :
             layer.set_main_frame()
 
-        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2), row=0, sticky='n', rowspan='80', ipadx=0, ipady=0 )
+        s.op_frame.grid_remove() if n == 0 else s.op_frame.grid( column=(n*2), row=0, sticky='n', rowspan='80', padx=0, pady=0 )
 
     def set_op(s, op, refresh=True):
         s.op = op

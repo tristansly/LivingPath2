@@ -212,10 +212,6 @@ def duplicate_group():
 
 def main():
 
-    if platform.system() == "Windows":
-        import ctypes
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)
-
     gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
     gui.root.config(cursor="watch");
     gui.global_Interface(gui.root)
