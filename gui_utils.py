@@ -169,12 +169,10 @@ class ButtonImage(ttk.Button):
         if s.flag=='click': s['image'] = s.ico_on  if s.active else s.ico_off
         if s.hover:         s['image'] = s.ico_on
         if s.flag=='drag':  s['image'] = s.ico_on if s.active else s.ico_off
-        print('enter           ', s['image'])
     def leave(s,e):
         s['image'] = s.ico_off if s.active else s.ico_off_alt if s.flag=='click' else s.ico_on ;
         if s.hover : s['image']=s.ico_off
         if s.flag=='drag' : s['image'] = s.ico_on_alt if s.active else s.ico_off_alt
-        print('leave           ', s['image'])
 
     def toggle(s, layer_is_active=True):
         s.active = not s.active
