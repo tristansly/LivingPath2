@@ -483,21 +483,21 @@ def setup_root(mainRoot):
         root.tk.call('tk', 'scaling', scaleFactor)
         DPI = ctypes.windll.user32.GetDpiForWindow(root.winfo_id()) // 72
 
-    MM_TO_IN = 0.0393700787
-    # Get a DC from the window's HWND
-    dc = ctypes.windll.user32.GetDC(root.winfo_id())
-    # The the monitor phyical width
-    # (returned in millimeters then converted to inches)
-    mw = ctypes.windll.gdi32.GetDeviceCaps(dc, 4) * MM_TO_IN
-    print(ctypes.windll.gdi32.GetDeviceCaps(dc, 4))
-    # The the monitor phyical height
-    mh = ctypes.windll.gdi32.GetDeviceCaps(dc, 6) * MM_TO_IN
-    # Get the monitor horizontal resolution
-    dw = root.winfo_screenwidth()
-    # Get the monitor vertical resolution
-    dh = ctypes.windll.gdi32.GetDeviceCaps(dc, 10)
-    hdpi, vdpi = dw / mw, dh / mh
-    DPI = hdpi/72
+        MM_TO_IN = 0.0393700787
+        # Get a DC from the window's HWND
+        dc = ctypes.windll.user32.GetDC(root.winfo_id())
+        # The the monitor phyical width
+        # (returned in millimeters then converted to inches)
+        mw = ctypes.windll.gdi32.GetDeviceCaps(dc, 4) * MM_TO_IN
+        print(ctypes.windll.gdi32.GetDeviceCaps(dc, 4))
+        # The the monitor phyical height
+        mh = ctypes.windll.gdi32.GetDeviceCaps(dc, 6) * MM_TO_IN
+        # Get the monitor horizontal resolution
+        dw = root.winfo_screenwidth()
+        # Get the monitor vertical resolution
+        dh = ctypes.windll.gdi32.GetDeviceCaps(dc, 10)
+        hdpi, vdpi = dw / mw, dh / mh
+        DPI = hdpi/72
 
     # DPI = int(round(root.winfo_fpixels('1i'))/72)
     print(DPI)
