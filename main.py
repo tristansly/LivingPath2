@@ -9,7 +9,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from fontTools import ttLib
 from functools import partial
 import PIL
-import math, os
+import math, os, platform
 import string
 import copy
 import pprint
@@ -211,6 +211,11 @@ def duplicate_group():
 
 
 def main():
+
+    if platform.system() == "Windows":
+        import ctypes
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
     gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
     gui.root.config(cursor="watch");
     gui.global_Interface(gui.root)

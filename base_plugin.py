@@ -23,7 +23,7 @@ class Plugin(object):
 
         s.frame.update()
         print(s.gui_button.winfo_height(),'px')
-        h = s.gui_button.winfo_height() - 6 * gui.DPI
+        h = round( s.gui_button.winfo_height() - 6 * gui.DPI )
 
         s.gui_drag =   gui_utils.ButtonImage(s.frame, size=h, img_name="drag", flag='drag')
         s.gui_del =    gui_utils.ButtonImage(s.frame, size=h, img_name="del")
