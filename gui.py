@@ -40,13 +40,12 @@ def global_Interface(root):
 
     gui_foot.pack(side='bottom', fill='x', expand=True, anchor='s', pady=(5,0), padx=(10,0) )
     gui_info.pack(side='left', fill='x', expand=False, anchor='s')
-    gui_zone.pack(side='top', fill='x', expand=False, anchor='n', pady=(10,20))
+    gui_zone.pack(side='top', fill='x', expand=False, anchor='n', padx=(15,0), pady=(10,20))
     ctn_para.pack(side='left', fill='y', expand=False, anchor='sw', padx=0, pady=0)
     gui_glob.pack(side='bottom', fill=None, expand=False, anchor='sw', padx=(20,0), pady=(20,0))
     gui_view.pack(side='top', fill='both', expand=True, anchor='n', pady=0)
-
     # keep min space width in gui_zone
-    ttk.Frame(gui_zone, style=frm_style, height=int(0.2*root.winfo_screenheight()), width=2).grid(rowspan=1000, column=0, row=0, padx=0, pady=0 )
+    ttk.Frame(gui_zone, style=frm_style, height=int(0.17*root.winfo_screenheight()), width=2).grid(rowspan=1000, column=0, row=0, padx=0, pady=0 )
 
 
     global b_rules, b_paths
@@ -68,7 +67,7 @@ def global_Interface(root):
     close_vecto()
 
     gui_para = gu.ScrolledFrame(ctn_para, side='left', takefocus=False )
-    gui_para.pack(side='top', fill='y', expand=True, anchor='n' )
+    gui_para.pack(side='top', fill='y', expand=True, anchor='nw' )
 
     global gui_font_info
     gui_font_info = dict.fromkeys(['name','format','unit','numG','glyph'])
@@ -76,9 +75,8 @@ def global_Interface(root):
         gui_font_info[k] = tk.StringVar()
         ttk.Label(gui_info, textvariable=gui_font_info[k] ).grid(column=i, row=0, padx=20, pady=(5,10) )
 
-    refresh_button = gu.ButtonImage(root, text="refresh", size=20, hover=True, img_name="update", command = refresh_txt)
-    refresh_butto2 = gu.ButtonImage(root, text="text",    size=20, hover=True, img_name="text", command = new_wiki)
-    refresh_button.place(in_=gui_zone, relx=1, rely=1, x=-80, y=-50, anchor="ne")
+    refresh_button = gu.ButtonImage(root, text="refresh", size=24, hover=True, img_name="update", command = refresh_txt)
+    refresh_butto2 = gu.ButtonImage(root, text="text",    size=24, hover=True, img_name="text", command = new_wiki)
     refresh_butto2.place(in_=gui_zone, relx=1, rely=1, x=-30, y=-50, anchor="ne")
     refresh_button.config(style='big.TButton')
     refresh_butto2.config(style='big.TButton')
@@ -111,6 +109,9 @@ def global_Interface(root):
     wiki.get_wiki_langs()
     try: wiki.set_wiki_lang( save_data.readParamFile(0) )
     except: wiki.set_wiki_lang( 'en' )
+    refresh_butto2.update()
+    refresh_button.place(in_=gui_zone, relx=1, rely=1, x=-30-4-refresh_butto2.winfo_width() , y=-50, anchor="ne")
+
     main.new_group()
     # main.new_layer(11) # test
 
@@ -118,15 +119,13 @@ def open_vecto(*args):
     global vecto
     for widget in vecto.winfo_children(): widget.pack( )
     vecto.bind('<Button-1>', close_vecto )
-    vecto.config(cursor="");
 def close_vecto(*args):
     global vecto
     for widget in vecto.winfo_children(): widget.pack_forget()
     b_paths.pack(anchor="w")
     vecto.bind('<Button-1>', open_vecto )
-    vecto.config(cursor="hand2");
 def open_vecto_indicator():  global vecto ; vecto["text"] = "vectorization options ..."
-def close_vecto_indicator(): global vecto ; vecto["text"] = "vectorization options"
+def close_vecto_indicator(): global vecto ; vecto["text"] = "vectorization ..."
 
 
 
@@ -307,7 +306,6 @@ def load_new_font(data):
     main.tmp_font = deepcopy(main.font)
     main.units = 1/ (main.font['head'].unitsPerEm /1000) # some font are more than 1000 u/em
     main.hbfont = hb.Font( hb.Face( hb.Blob.from_file_path(utils.path(data)) ) ) # load metric with uharfbuzz
-    save_data.writeParamFile(data,1)
 
     try:
         refresh()
@@ -356,6 +354,7 @@ def load_new_font(data):
     gui_font_info['name'].set( "Input font :  " + main.font_name + " - " + main.font_style )
 
     refresh_txt(compute=False)
+    save_data.writeParamFile(data,1) # save font path
 
 
 def new_wiki():
@@ -459,6 +458,7 @@ def setup_root(mainRoot):
     # utils.check_time(root)
     root.title('LivingPath')
     root.overrideredirect(0)
+    gu.set_icon(root)
     # import ctypes # Fixe image bad resolution (Windows)
     # ctypes.windll.shcore.SetProcessDpiAwareness(1)
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
@@ -472,12 +472,12 @@ def setup_root(mainRoot):
     # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
     # if ws < 1500 : root.attributes("-fullscreen", True)
     # root['background'] = 'white' # for linux distro ?
-    gu.set_icon(root)
 
     scaleFactor = root.winfo_fpixels('1i')/72
-    root.tk.call('tk', 'scaling', 1.5 )
+    print('scaleFactor', scaleFactor)
 
-    root.minsize( round(800) , round(500) )
+    root.tk.call('tk', 'scaling', 1.5 )
+    root.minsize( round(900) , round(650) )
     root.tk.call("source", utils.path("files/azure.tcl")) # theme
     root.tk.call("set_theme", "light")
     # s = ttk.Style(root) #  style mac...
@@ -497,7 +497,7 @@ def setup_root(mainRoot):
     style.map('no_indicatoron.TCheckbutton', padding="1", compound="center" )
     style.configure('cover.TFrame', background="white")
     style.configure("custom.TButton", padding=[2,2,2,2])
-    style.configure("big.TButton", padding=[6,6,6,6])
+    style.configure("big.TButton", padding=[4,4,4,4])
     # style.configure('gray.TButton',  padding=[3,3,3,3])
     # style.map('transparent.TButton', foreground=[('pressed', 'blue'), ('active', 'white')] )
     # style.configure('transparent.TButton', foreground="white", padding=[3,3,3,3])

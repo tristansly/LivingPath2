@@ -264,13 +264,12 @@ class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
             s.yscrollbar = ttk.Scrollbar( s.container, orient='vertical', command=s.canvas.yview)
         if axis == 'x' or axis == 'xy' or axis == 'yx' or axis == 'both':
             s.xscrollbar = ttk.Scrollbar( s.container, orient='horizontal', command=s.canvas.xview)
-        s.canvas.create_window( (0,0), window=s.content, anchor='nw')
+        s.contentId = s.canvas.create_window( (0,0), window=s.content, anchor='nw')
         s.root.bind("<Configure>", s.resize)
 
 
     def updateContent(s):
         s.content.update()
-
         if s.yscrollbar != None :
             s.yscrollbar.pack( side=s.side,  fill='y', padx=(5,5) )
             # s.canvas.configure( yscrollcommand=s.yscrollbar.set, scrollregion="0 0 0 %s" % s.content.winfo_height() )
@@ -284,7 +283,7 @@ class ScrolledFrame(): # https://github.com/nikospt/tk-ScrolledFrame/
                 [s.BindMouseWheel(x) for x in [s.content,s.canvas,s.container]]
                 s.bindChildren( s.content)
 
-        s.canvas.pack( side='top', fill='both', expand=True, padx=(20,0) if s.side=="left" else (0,0) )
+        s.canvas.pack( side='top', fill='y', expand=True, padx=(20,0) if s.side=="left" else (0,0) )
         s.container.update()
         s.resize()
 
