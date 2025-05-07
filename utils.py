@@ -25,7 +25,7 @@ def load_plugins():
     from plugins import center_line_pixels
     from plugins import particles
     # from plugins import particles2
-    # from plugins import cahn_hilliard
+    from plugins import cahn_hilliard
     # from plugins import cahn_hilliard2
     from plugins import reaction_diffusion
     for i in sys.modules.keys() :
