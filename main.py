@@ -221,6 +221,7 @@ def main():
     try:                   gui.load_new_font( utils.path(save_data.readParamFile(1)) )
     except Exception as e: gui.load_new_font( utils.path("files/1.otf") )
     gui.show_glyph('next'); gui.show_glyph('prev') # regularize current glyph if not in font
+
     gui_utils.used_glyphs = list(font.getGlyphSet().keys())
     gui.root.config(cursor="")
     utils.check_time(gui.root)
@@ -228,7 +229,7 @@ def main():
 
     # gui.root.deiconify()
     # gui.root.overrideredirect(False) # desable update gui
-    gui_utils.set_full_screen(gui.root)
+    # gui_utils.set_full_screen(gui.root)
 
     gui.root.mainloop()
 
