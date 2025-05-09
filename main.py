@@ -211,12 +211,14 @@ def main():
 
     gui.root.config(cursor="watch");
 
-    gui.root.attributes('-alpha',0)
+    # gui.root.attributes('-alpha',0)
+
     gui.global_Interface(gui.root)
     # gui.root.overrideredirect(True) # desable update gui
     # gui.root.withdraw() # hide gui
     gui_utils.close_splash_screen()
-    gui.root.attributes('-alpha',1)
+
+    # gui.root.attributes('-alpha',1)
 
     try:                   gui.load_new_font( utils.path(save_data.readParamFile(1)) )
     except Exception as e: gui.load_new_font( utils.path("files/1.otf") )

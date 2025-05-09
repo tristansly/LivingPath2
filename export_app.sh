@@ -16,6 +16,9 @@ pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico'
 # ---- mac -------------------------------
 
 # MACOS need conda install -c conda-forge lightgbm
+
+switch hook/tkinterdnd2.py
+
 source livingpath/bin/activate
 pyinstaller -n "LivingPath" --noconfirm --windowed --icon='files/logo.icns' --add-data="files:files" --additional-hooks-dir="hooks" --collect-all "hyperglot" -p "." ./main.py
 
@@ -40,7 +43,9 @@ dist/LinuxVenv/bin/python3 main.py
 
 # delete the playsound stuff => bug on Arch Linux ?
 
- sudo dist/LinuxVenv/bin/pyinstaller -n "LivingPath" --onefile --clean --icon='files/logo.ico' --add-data="files:files" --splash="files/splash.jpg" --additional-hooks-dir="hooks" --hidden-import=PIL._tkinter_finder --collect-all "hyperglot" -p "."   ./main.py
+switch hook/tkinterdnd2.py
+
+ sudo linux-venv/bin/pyinstaller -n "LivingPath" --onefile --clean --add-data="files:files" --splash="files/splash.jpg" --additional-hooks-dir="hooks" --hidden-import=PIL._tkinter_finder --collect-all "hyperglot" -p "."   ./main.py
 
  # test exported linux app
  /mnt/c/Users/ivan_/Desktop/code/python/LivingPath/dist/LivingPath
