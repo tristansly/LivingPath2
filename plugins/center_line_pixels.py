@@ -1,14 +1,12 @@
 from base_plugin import Plugin
 import gui_utils as gui
-import utils, path_utils
 
 import numpy as np
-from PIL import Image, ImageOps, ImageMath, ImageDraw
+from PIL import Image
 
 import cv2
 from skimage.morphology import medial_axis, skeletonize  # pip install scikit-image
 
-import main
 
 class Layer(Plugin):
     """

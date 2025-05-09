@@ -1,13 +1,10 @@
 import sys, os
 import pathlib
-import importlib
 import ctypes
 import contextlib
 import freetype as ft # freetype-py
 import numpy as np
 import uharfbuzz as hb
-from datetime import datetime
-import tkinter as tk
 margin = 200
 
 def load_plugins():

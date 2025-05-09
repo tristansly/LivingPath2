@@ -1,18 +1,13 @@
-import utils, wiki, save_data
+import utils, save_data
 from font_utils import *
-import path_utils
 import gui
 import gui_utils
 from group import Group
-from base_plugin import Plugin
-from tkinterdnd2 import DND_FILES, TkinterDnD
+from tkinterdnd2 import TkinterDnD
 from fontTools import ttLib
-from functools import partial
 import PIL
-import math, os, platform
 import string
 import copy
-import pprint
 
 plugins, names, groups = [], [], []
 layer, over_layer = None, None
@@ -213,14 +208,27 @@ def duplicate_group():
 def main():
 
     gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
+
     gui.root.config(cursor="watch");
+
+    gui.root.attributes('-alpha',0)
     gui.global_Interface(gui.root)
+    # gui.root.overrideredirect(True) # desable update gui
+    # gui.root.withdraw() # hide gui
+    gui_utils.close_splash_screen()
+    gui.root.attributes('-alpha',1)
+
     try:                   gui.load_new_font( utils.path(save_data.readParamFile(1)) )
     except Exception as e: gui.load_new_font( utils.path("files/1.otf") )
     gui.show_glyph('next'); gui.show_glyph('prev') # regularize current glyph if not in font
     gui_utils.used_glyphs = list(font.getGlyphSet().keys())
     gui.root.config(cursor="")
     utils.check_time(gui.root)
+
+
+    # gui.root.deiconify()
+    # gui.root.overrideredirect(False) # desable update gui
+    gui_utils.set_full_screen(gui.root)
 
     gui.root.mainloop()
 

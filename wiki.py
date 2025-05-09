@@ -1,7 +1,6 @@
 import utils
 import random
 import pickle
-import os
 import glob
 import wikipediaapi
 title = "titre"

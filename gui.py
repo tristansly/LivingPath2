@@ -1,18 +1,17 @@
 import main, utils, font_utils, save_data, wiki, specimen, ttf2otf
 import gui_utils as gu
-from PIL import ImageTk, Image, ImageDraw
+from PIL import ImageTk, Image
 from fontTools.ttLib import TTFont
-from fontTools import unicodedata
 import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, filedialog
 from tkinterdnd2 import DND_FILES
 from functools import partial
 from iso639 import language  # python-iso639 and not iso639
 import uharfbuzz as hb
-from hyperglot import checker, SupportLevel, parse, LanguageValidity, languages
+from hyperglot import checker, parse, languages
 from playsound3 import playsound # before pip-install: pip install --upgrade setuptools wheel
 import re
-import platform, math
+import platform
 from copy import deepcopy
 import pprint
 visual_info = False
@@ -87,12 +86,12 @@ def global_Interface(root):
 
     gui_view.columnconfigure(0, weight=1, uniform='a')
     gui_view.columnconfigure(1, weight=1, uniform='a')
-    frame_txt.grid(row=0,column=1, sticky='ewns')
     frame_ltr.grid(row=0,column=0, sticky='ewns')
+    frame_txt.grid(row=0,column=1, sticky='ewns')
 
     img = ImageTk.PhotoImage(main.img)
     img_letter = Label(frame_ltr, image=img)
-    # img_letter.pack(side = 'left')
+    # img_letter.pack(side = 'top')
     img_letter.place(relx=.5, rely=.5, anchor="center")
 
     for w in frame_ltr, img_letter:
@@ -246,21 +245,18 @@ def show_glyph(flag='', char=''):
         main.current_glyph = saved[:]
     if main.current_glyph == "" : main.current_glyph = saved[:]
 
-
-
     if 'glyf' in main.font :
         g = main.font['glyf'][main.current_glyph]
         if g.isComposite(): refresh()
             # show_glyph('next' if flag=='' else flag) #skip composite
-        elif g.numberOfContours > 0:
-            refresh()
+        elif g.numberOfContours > 0: refresh()
         else :
             show_glyph('next' if flag=='' else flag)  #skip
             print('glyph has no contour', g.numberOfContours)
 
-    elif 'CFF ' in main.font :
-            refresh()
+    elif 'CFF ' in main.font : refresh()
     else :
+        show_glyph('next' if flag=='' else flag)  #skip
         print('missing CFF or GLYF table ...')
 
     gui_font_info['glyph'].set( " [ " + str(main.current_glyph) + " ]" )
@@ -457,25 +453,12 @@ def setup_root(mainRoot):
     root = mainRoot
     # utils.check_time(root)
     root.title('LivingPath')
-    root.overrideredirect(0)
     gu.set_icon(root)
-    # import ctypes # Fixe image bad resolution (Windows)
-    # ctypes.windll.shcore.SetProcessDpiAwareness(1)
-    ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
-    wm, hm = ws/10, hs/10
-    # root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
-    # root.geometry("{}x{}+-7+0".format(ws-0,hs-50))
-    if platform.system() == "Darwin" : root.geometry("{}x{}+0+0".format(ws,hs))
-    if platform.system() == "Windows": root.state('zoomed')
-    if platform.system().startswith('Linux'): root.attributes('-zoomed', True)
-    # root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
-    # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
-    # if ws < 1500 : root.attributes("-fullscreen", True)
-    # root['background'] = 'white' # for linux distro ?
-
+    gu.set_full_screen(root)
     scaleFactor = root.winfo_fpixels('1i')/72
     print('scaleFactor', scaleFactor)
 
+    # gu.splash_screen(root)
     root.tk.call('tk', 'scaling', 1.5 )
     root.minsize( round(900) , round(650) )
     root.tk.call("source", utils.path("files/azure.tcl")) # theme

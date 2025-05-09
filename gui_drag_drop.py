@@ -1,9 +1,7 @@
 
 from tkinter import *
-from functools import partial
 
 from tkinter import Button, Label, Entry, Tk, SE, ttk
-from PIL import ImageTk, Image
 import main
 import gui, gui_utils
 

@@ -3,7 +3,7 @@ import gui_utils as gui
 import utils, path_utils
 
 import numpy as np
-from PIL import Image, ImageOps, ImageMath, ImageDraw
+from PIL import Image
 # from numba import jit , njit
 from autotrace import Bitmap # pip install pyautotrace
 import main

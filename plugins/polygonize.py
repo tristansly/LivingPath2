@@ -2,16 +2,9 @@ from base_plugin import Plugin
 import gui_utils as gui
 import utils
 
-import random
-import sys
-import utils
 import pymunk
-import pymunk.util
 import pymunk.autogeometry
-import cv2
-import numpy as np
 from pymunk import Vec2d
-import math
 from PIL import Image, ImageDraw
 
 class Layer(Plugin):

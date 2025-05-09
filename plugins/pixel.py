@@ -1,7 +1,7 @@
 import gui_utils as gui
 from base_plugin import Plugin
 
-from PIL import ImageFilter, Image
+from PIL import Image
 
 class Layer(Plugin):
     """Pixelize letter."""

@@ -1,15 +1,9 @@
 # import gui_utils as gui
-import gui
-import main
-import utils
-import gui_utils
+import gui, main, gui_utils
 from base_plugin import Plugin
-from tkinter import TclError, ttk, Tk, Frame, Menu, Label
+from tkinter import ttk
 from functools import partial
-
-from io import BytesIO
-from PIL import Image, ImageTk
-import pprint
+from PIL import Image
 
 class Group():
 

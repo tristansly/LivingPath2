@@ -1,14 +1,7 @@
 import freetype as ft # pip install freetype-py
-import numpy as np
 from fontTools.pens.freetypePen import FreeTypePen
-from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
-from fontTools.misc.transform import Offset
-from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops, ImageFont
-import beziers
-from beziers.path import BezierPath
-
+from PIL import Image, ImageOps
 import utils
 import pprint
 # -------------------------------------------------------------------------------------------

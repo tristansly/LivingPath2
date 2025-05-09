@@ -1,7 +1,6 @@
 # import gui_utils as gui
 import group, main, gui, gui_drag_drop, gui_utils
-from PIL import Image
-from tkinter import TclError, ttk, Tk, Frame, Menu, Label
+from tkinter import ttk
 from functools import partial
 
 

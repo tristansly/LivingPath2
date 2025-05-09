@@ -4,9 +4,9 @@ from PIL import ImageTk, Image
 import tkinter as tk
 from tkinter import TclError, ttk, Tk, Frame, Menu, Label, Entry
 from functools import partial
-import inspect
 from tkhtmlview import HTMLLabel
 import platform
+import importlib
 used_glyphs = []
 slow_icon = '⏳'
 if platform.system().startswith('Linux') or platform.system() == "Darwin" : slow_icon = '[slow]'
@@ -464,3 +464,26 @@ def show_shortcut_menu(root):
     top.bind('<Escape>', lambda event=None: top.destroy() )
     top.bind('<Return>', lambda event=None: top.destroy() )
     center_window(top)
+
+#----------------------------------------------------------------------------------
+def set_full_screen(root):
+    # import ctypes # Fixe image bad resolution (Windows)
+    # ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
+    wm, hm = ws/10, hs/10
+    # root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
+    # root.geometry("{}x{}+-7+0".format(ws-0,hs-50))
+    if platform.system() == "Darwin" : root.geometry("{}x{}+0+0".format(ws,hs))
+    if platform.system() == "Windows": root.state('zoomed')
+    if platform.system().startswith('Linux'): root.attributes('-zoomed', True)
+    # root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
+    # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
+    # if ws < 1500 : root.attributes("-fullscreen", True)
+    # root['background'] = 'white' # for linux distro ?
+
+#----------------------------------------------------------------------------------
+def close_splash_screen():
+    if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
+        import pyi_splash
+        pyi_splash.update_text('UI Loaded ...')
+        pyi_splash.close()

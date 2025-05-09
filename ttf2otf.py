@@ -1,4 +1,3 @@
-from fontTools import configLogger
 from fontTools.cffLib import PrivateDict
 from fontTools.fontBuilder import FontBuilder
 from fontTools.misc.psCharStrings import T2CharString
@@ -9,7 +8,7 @@ from fontTools.pens.qu2cuPen import Qu2CuPen
 from fontTools.pens.recordingPen import DecomposingRecordingPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontTools.ttLib import TTFont, TTLibError
+from fontTools.ttLib import TTFont
 from fontTools.ttLib.scaleUpem import scale_upem
 from cffsubr import subroutinize as subr
 import typing as t

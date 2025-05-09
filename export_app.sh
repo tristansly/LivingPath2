@@ -4,7 +4,8 @@
 
 # pyinstaller -n "app" --onefile --windowed --clean --icon='files/logo.ico' --add-data="files;files" --add-data="plugins;plugins" --additional-hooks-dir=. --additional-hooks-dir="./plugins" -p ".;./plugins"  --collect-submodules="plugins" ./main.py
 
-pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico' --add-data="files;files" --additional-hooks-dir="hooks" --collect-all "hyperglot" -p "."   ./main.py
+pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico' --add-data="files;files" --additional-hooks-dir="hooks" --splash="files/splash.jpg" --collect-all "hyperglot" -p "." ./main.py
+
 # on MAC OS & unix systems you can write :
 # files:files
 # (: instead of ;)
@@ -12,8 +13,14 @@ pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico'
 # read -rn1 # keep consol open
 
 
+# ---- mac -------------------------------
 
-# ---- linux export app -------------------------------
+# MACOS need conda install -c conda-forge lightgbm
+source livingpath/bin/activate
+pyinstaller -n "LivingPath" --noconfirm --windowed --icon='files/logo.icns' --add-data="files:files" --additional-hooks-dir="hooks" --splash="files/splash.jpg" --collect-all "hyperglot" -p "." ./main.py
+
+
+# ---- linux -------------------------------
 
 # on windows Ubuntu VM : run "WSL" in power shell
 apt get python3.12-full

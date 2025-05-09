@@ -5,15 +5,12 @@ from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
-from fontTools.misc.transform import Offset
-from PIL import ImageDraw, Image, ImageOps, ImageFilter, ImageMath, ImageChops, ImageFont
-import beziers
+from PIL import ImageDraw, Image, ImageOps, ImageMath, ImageChops, ImageFont
 import uharfbuzz as hb
 import types
 from matplotlib import font_manager
 params = types.SimpleNamespace()
 import utils, path_utils
-import pprint
 import copy
 
 
@@ -53,7 +50,6 @@ def pt(a):
     return (a.x//coef, a.y//coef)  # not sure about // : int or float
 
 
-from fontTools.misc.psCharStrings import encodeIntT2
 def glyph_to_font_outline(g, in_font, font, group):
     l = group.layers[0]
     gs = in_font.getGlyphSet()
@@ -400,7 +396,6 @@ def rename_font(font, name, style):
 
 
 #  from https://github.com/fonttools/fonttools/blob/8d3b9900976b6c77e33f899fc9e74e07dd09591a/Snippets/decompose-ttf.py
-from fontTools.ttLib import TTFont
 from fontTools.pens.recordingPen import DecomposingRecordingPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 import pathops

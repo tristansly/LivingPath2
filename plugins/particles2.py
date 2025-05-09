@@ -3,13 +3,10 @@ import gui_utils as gui
 import utils
 
 import random
-import sys
 import utils
 import pymunk
-import pymunk.util
 import pymunk.autogeometry
 from pymunk import Vec2d
-import math
 from PIL import Image, ImageDraw
 
 class Layer(Plugin):

@@ -1,6 +1,6 @@
 import pickle
 from tkinter import filedialog as fd
-import main, font_utils, gui, utils, gui_utils
+import main, font_utils, gui, utils
 import os.path
 
 #------------------------------------------------------------------------------------------#

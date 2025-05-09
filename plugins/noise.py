@@ -3,9 +3,6 @@ from base_plugin import Plugin
 from PIL import ImageFilter, Image
 import cv2
 import numpy as np
-import perlin_numpy as perlin
-from functools import partial
-import math, utils
 
 class Layer(Plugin):
     """Apply a blur then a threshold."""
@@ -34,6 +31,7 @@ class Layer(Plugin):
         noise = cv2.resize(noise, img_size, interpolation=cv2.INTER_LANCZOS4)
 
         # noise is too slow
+        # import perlin_numpy as perlin
         # noise = perlin.generate_fractal_noise_2d((2048,2048), (8, 8), octaves=1, persistence=0.5)
         # noise = noise[0:img_size[1], 0:img_size[0]]
         # noise = noise.astype(np.uint8)

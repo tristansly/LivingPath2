@@ -1,15 +1,11 @@
 import gui_utils as gui
-import font_utils, path_utils
 from base_plugin import Plugin
 
 from fontTools.pens.freetypePen import FreeTypePen
-from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontTools.pens.t2CharStringPen import T2CharStringPen
-from fontTools.pens.transformPen import TransformPen
 from fontTools.misc.transform import Offset
 import beziers
 
-from PIL import ImageFilter, Image, ImageOps, ImageDraw
+from PIL import Image, ImageOps, ImageDraw
 import main
 import utils
 

@@ -1,6 +1,5 @@
 from base_plugin import Plugin
 import gui_utils as gui
-import utils
 
 import numpy as np
 from PIL import Image, ImageOps
