@@ -17,7 +17,7 @@ pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico'
 
 # MACOS need conda install -c conda-forge lightgbm
 source livingpath/bin/activate
-pyinstaller -n "LivingPath" --noconfirm --windowed --icon='files/logo.icns' --add-data="files:files" --additional-hooks-dir="hooks" --splash="files/splash.jpg" --collect-all "hyperglot" -p "." ./main.py
+pyinstaller -n "LivingPath" --noconfirm --windowed --icon='files/logo.icns' --add-data="files:files" --additional-hooks-dir="hooks" --collect-all "hyperglot" -p "." ./main.py
 
 
 # ---- linux -------------------------------
@@ -40,7 +40,7 @@ dist/LinuxVenv/bin/python3 main.py
 
 # delete the playsound stuff => bug on Arch Linux ?
 
- sudo dist/LinuxVenv/bin/pyinstaller -n "LivingPath" --onefile --clean --icon='files/logo.ico' --add-data="files:files" --additional-hooks-dir="hooks" --hidden-import=PIL._tkinter_finder --collect-all "hyperglot" -p "."   ./main.py
+ sudo dist/LinuxVenv/bin/pyinstaller -n "LivingPath" --onefile --clean --icon='files/logo.ico' --add-data="files:files" --splash="files/splash.jpg" --additional-hooks-dir="hooks" --hidden-import=PIL._tkinter_finder --collect-all "hyperglot" -p "."   ./main.py
 
  # test exported linux app
  /mnt/c/Users/ivan_/Desktop/code/python/LivingPath/dist/LivingPath
