@@ -1,0 +1,11 @@
+
+
+Mac install : if app is "damaged" or doesn't open ( Unsigned Developers app )
+
+If left-clic, [open] does not work :
+- Place LivingPath.app in Applications folder
+- Open the Terminal application (in your launchpad)
+- Copy-paste in Terminal : sudo xattr -r -d com.apple.quarantine /Applications/LivingPath.app
+- Press Enter (enter OS password if asked then press Enter)
+
+if there is no error message after that, just run LivingPath from your Applications

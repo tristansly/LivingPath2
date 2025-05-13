@@ -1,0 +1,20 @@
+
+
+1 -  Unzip LivingPath jile on your computer
+2 - Double click on LivingPath file
+
+
+    2.1 - if it is not working Run it from the Console or the Terminal :
+
+        path/to/LivingPath
+        (or drag and drop LivingPath file on the Console)
+        press enter
+
+
+
+    2.2 - if there is an authorization problem :
+
+        Write in Console : chmod +x path/to/LivingPath
+        press enter
+        path/to/LivingPath
+        press enter
