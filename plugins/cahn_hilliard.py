@@ -4,13 +4,15 @@ import gui_utils as gui
 import numpy as np
 from PIL import Image, ImageOps
 from tqdm import tqdm
-from scipy.fft import fft2, ifft2
 
 import platform
-if platform.system() != "Windows":
-    import torch
-    global device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# if platform.system() == "Windows":
+#     from scipy.fft import ifft2
+# else :
+import torch
+global device
+# device = torch.device('cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 class Layer(Plugin):

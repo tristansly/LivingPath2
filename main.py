@@ -141,7 +141,6 @@ def process_font_export(path='', name=None, style=None, flag='all'):
 
     text_to_font(gs, font, char_to_glyph=isString, title="Export font")
 
-
     # if font['glyf'] : font['maxp'].recalc(font)
     rename_font(font, name, style )
     font.save( utils.path( path )  )
@@ -207,33 +206,42 @@ def duplicate_group():
 
 def main():
 
-    gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
+    try: # test if LivingPath is allready running (bugfix cahn-hillard on MAC )
+        si = utils.SingleInstance()
+    except e:
+        print("SingleInstance check error ",e)
+        runApp()
+    else :
+        if si.is_running:
+            print("This app is already running!")
+        else :
+            runApp()
 
-    gui.root.config(cursor="watch");
+def runApp():
+        gui.root = TkinterDnD.Tk()  # notice - use this instead of tk.Tk()
+        gui.root.config(cursor="watch");
 
-    # gui.root.attributes('-alpha',0)
+        # gui.root.attributes('-alpha',0)
+        gui.global_Interface(gui.root)
+        # gui.root.overrideredirect(0) # desable update gui
+        # gui.root.withdraw() # hide gui
+        gui_utils.close_splash_screen()
+        # gui.root.attributes('-alpha',1)
 
-    gui.global_Interface(gui.root)
-    # gui.root.overrideredirect(True) # desable update gui
-    # gui.root.withdraw() # hide gui
-    gui_utils.close_splash_screen()
+        try:                   gui.load_new_font( utils.path(save_data.readParamFile(1)) )
+        except Exception as e: gui.load_new_font( utils.path("files/1.otf") )
+        gui.show_glyph('next'); gui.show_glyph('prev') # regularize current glyph if not in font
 
-    # gui.root.attributes('-alpha',1)
+        gui_utils.used_glyphs = list(font.getGlyphSet().keys())
+        gui.root.config(cursor="")
+        utils.check_time(gui.root)
 
-    try:                   gui.load_new_font( utils.path(save_data.readParamFile(1)) )
-    except Exception as e: gui.load_new_font( utils.path("files/1.otf") )
-    gui.show_glyph('next'); gui.show_glyph('prev') # regularize current glyph if not in font
+        # gui.root.deiconify()
+        # gui.root.overrideredirect(False) # desable update gui
+        # gui_utils.set_full_screen(gui.root)
+        gui.root.mainloop()
+        si.clean_up()
 
-    gui_utils.used_glyphs = list(font.getGlyphSet().keys())
-    gui.root.config(cursor="")
-    utils.check_time(gui.root)
-
-
-    # gui.root.deiconify()
-    # gui.root.overrideredirect(False) # desable update gui
-    # gui_utils.set_full_screen(gui.root)
-
-    gui.root.mainloop()
 
 if __name__ == "__main__":
     # multi.freeze_support() # multiprocessing compatibility for pyinstaller

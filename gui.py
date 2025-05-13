@@ -454,7 +454,22 @@ def setup_root(mainRoot):
     # utils.check_time(root)
     root.title('LivingPath')
     gu.set_icon(root)
-    gu.set_full_screen(root)
+
+    # import ctypes # Fixe image bad resolution (Windows)
+    # ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
+    wm, hm = ws/10, hs/10
+    # root.geometry('%dx%d+%d+%d' % (ws-wm, hs-hm, ws/2-(ws-wm)/2, hs/2-(hs-hm)/2))
+    # root.geometry("{}x{}+-7+0".format(ws-0,hs-50))
+    if platform.system() == "Darwin" : root.geometry("{}x{}+0+0".format(ws,hs))
+    if platform.system() == "Windows": root.state('zoomed')
+    if platform.system().startswith('Linux'): root.attributes('-zoomed', True)
+    # root.geometry('%dx%d+%d+%d' % (ws-550, hs-100, 0, 0)) #production
+    # if ws < 2000 : root.geometry("{0}x{1}+0+0".format(ws,hs))
+    # if ws < 1500 : root.attributes("-fullscreen", True)
+    # root['background'] = 'white' # for linux distro ?
+
+    # gu.set_full_screen(root)
     scaleFactor = root.winfo_fpixels('1i')/72
     print('scaleFactor', scaleFactor)
 

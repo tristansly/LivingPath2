@@ -4,7 +4,7 @@
 
 # pyinstaller -n "app" --onefile --windowed --clean --icon='files/logo.ico' --add-data="files;files" --add-data="plugins;plugins" --additional-hooks-dir=. --additional-hooks-dir="./plugins" -p ".;./plugins"  --collect-submodules="plugins" ./main.py
 
-pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico' --add-data="files;files" --additional-hooks-dir="hooks" --splash="files/splash.jpg" --collect-all "hyperglot" -p "." ./main.py
+pyinstaller -n "LivingPath.spec" --onefile --windowed --clean --icon='files/logo.ico' --add-data="files;files" --additional-hooks-dir="hooks" --splash="files/splash.jpg" --collect-all "hyperglot" -p "." ./main.py
 
 # on MAC OS & unix systems you can write :
 # files:files
@@ -17,10 +17,9 @@ pyinstaller -n "LivingPath" --onefile --windowed --clean --icon='files/logo.ico'
 
 # MACOS need conda install -c conda-forge lightgbm
 
-switch hook/tkinterdnd2.py
 
 source livingpath/bin/activate
-pyinstaller -n "LivingPath" --noconfirm --windowed --icon='files/logo.icns' --add-data="files:files" --additional-hooks-dir="hooks" --collect-all "hyperglot" -p "." ./main.py
+pyinstaller -n "LivingPath.spec" --noconfirm --windowed --icon='files/logo.icns' --add-data="files:files" --additional-hooks-dir="hooks" --collect-all "hyperglot" -p "." ./main.py
 
 
 # ---- linux -------------------------------
@@ -45,7 +44,7 @@ dist/LinuxVenv/bin/python3 main.py
 
 switch hook/tkinterdnd2.py
 
- sudo linux-venv/bin/pyinstaller -n "LivingPath" --onefile --clean --add-data="files:files" --splash="files/splash.jpg" --additional-hooks-dir="hooks" --hidden-import=PIL._tkinter_finder --collect-all "hyperglot" -p "."   ./main.py
+sudo linux-venv/bin/pyinstaller -n "LivingPath.spec" --onefile --clean --add-data="files:files" --splash="files/splash.jpg" --additional-hooks-dir="hooks" --hidden-import=PIL._tkinter_finder --collect-all "hyperglot" -p "."   ./main.py
 
  # test exported linux app
  /mnt/c/Users/ivan_/Desktop/code/python/LivingPath/dist/LivingPath
