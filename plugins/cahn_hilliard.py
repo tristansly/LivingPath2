@@ -10,6 +10,7 @@ import platform
 #     from scipy.fft import ifft2
 # else :
 import torch
+from numpy.fft import fft2, ifft2
 global device
 # device = torch.device('cpu')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

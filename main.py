@@ -208,8 +208,8 @@ def main():
 
     try: # test if LivingPath is allready running (bugfix cahn-hillard on MAC )
         si = utils.SingleInstance()
-    except e:
-        print("SingleInstance check error ",e)
+    except Exception as e:
+        print("SingleInstance check error ", e)
         runApp()
     else :
         if si.is_running:
